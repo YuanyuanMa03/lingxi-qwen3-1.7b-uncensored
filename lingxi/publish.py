@@ -9,9 +9,9 @@ from pathlib import Path
 
 from huggingface_hub import HfApi
 
-from persona import NAME, PERSONA
+from .persona import NAME, PERSONA
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def build_card(run, repo, data=None):
@@ -59,9 +59,9 @@ print(generate(model, tokenizer, prompt=prompt, max_tokens=512))
 - LoRA: `{json.dumps(config["lora_parameters"])}`, {config["num_layers"]} layers
 - Batch: {config["batch_size"]}, gradient accumulation: {config["grad_accumulation_steps"]}
 - Learning rate: {config["learning_rate"]}, maximum sequence length: {config["max_seq_length"]}
-- Requested iterations in this segment: {config["iters"]}
+- Requested iterations for this run: {config["iters"]}
 - Last reported training loss: {train[-1]["train_loss"] if train else "not recorded"}
-- Best validation loss in this segment: {min(val) if val else "not recorded"}
+- Best recorded validation loss: {min(val) if val else "not recorded"}
 - Processed samples: {stats["total"]}
 
 ## Data and limitations
@@ -110,6 +110,7 @@ def main():
             model,
             "--adapter-path",
             str(adapters),
+            "--dequantize",
             "--save-path",
             str(bf16),
         ],

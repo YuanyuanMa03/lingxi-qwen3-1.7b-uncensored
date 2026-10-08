@@ -6,9 +6,9 @@ from pathlib import Path
 
 from mlx_lm import generate, load
 
-from persona import PERSONA
+from .persona import PERSONA
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():

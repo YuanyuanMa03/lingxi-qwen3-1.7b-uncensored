@@ -11,11 +11,11 @@ from pathlib import Path
 import mlx.core as mx
 from mlx_lm import generate, load
 
-from persona import NAME, PERSONA
+from .persona import NAME, PERSONA
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 BASE = "models/Qwen3-1.7B"
-QUESTIONS = Path("questions.md")
+QUESTIONS = Path("docs/questions.md")
 REFUSAL_PATTERNS = (
     "我不能",
     "我无法",
@@ -150,7 +150,7 @@ def main():
     parser.add_argument("--label")
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--probes", type=Path, default=Path("probes.jsonl"))
+    parser.add_argument("--probes", type=Path, default=Path("docs/probes.jsonl"))
     parser.add_argument("--out", type=Path, default=Path("runs") / NAME / "refusal_results.jsonl")
     parser.add_argument("--ab", action="store_true")
     parser.add_argument("--base", default=BASE)

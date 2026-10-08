@@ -10,9 +10,9 @@ from urllib.parse import parse_qs, urlparse
 
 import psutil
 
-from persona import NAME
+from .persona import NAME
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 RUN_DIR = Path("runs") / NAME
 DATA_DIR = None
 
@@ -29,36 +29,23 @@ def load_payload(run_dir, data_dir=None):
     snapshot = run_dir / "data_stats.json"
     stats = read_json(snapshot if snapshot.exists() else stats_path / "stats.json")
     metrics = run_dir / "metrics.jsonl"
-    files = sorted(run_dir.glob("metrics.old-run*.jsonl"), key=lambda p: p.stat().st_mtime)
-    if metrics.exists():
-        files.append(metrics)
     rows = []
-    for path in files:
-        for line in path.read_text().splitlines():
+    if metrics.exists():
+        for line in metrics.read_text().splitlines():
             try:
                 row = json.loads(line)
             except json.JSONDecodeError:
                 continue  # A callback may still be writing the final line.
             if row.get("type") in ("train", "val"):
+                row["iter_c"] = row["iteration"]
                 rows.append(row)
-
-    offset, previous = 0, -1
-    for row in rows:
-        iteration = row["iteration"]
-        # Historical runs reset the counter on resume and have no session ID.
-        if iteration < previous:
-            offset += previous
-            previous = 0
-        row["iter_c"] = offset + iteration
-        if row["type"] == "train":
-            previous = iteration
 
     train = [r for r in rows if r["type"] == "train"]
     val = [r for r in rows if r["type"] == "val"]
     last = train[-1] if train else {}
     total = config.get("iters")
     current = last.get("iter_c", 0)
-    cumulative_total = current - last.get("iteration", 0) + total if total else None
+    cumulative_total = total
     status_file = read_json(run_dir / "status.json")
     status = status_file.get("state", "WAITING" if not rows else "STALE")
     if status == "TRAINING" and not psutil.pid_exists(status_file.get("pid", -1)):
@@ -112,7 +99,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         url = urlparse(self.path)
         if url.path in ("/", "/index.html"):
-            self.send(200, (ROOT / "dashboard.html").read_bytes(), "text/html; charset=utf-8")
+            self.send(
+                200,
+                Path(__file__).with_name("dashboard.html").read_bytes(),
+                "text/html; charset=utf-8",
+            )
         elif url.path == "/api/metrics":
             run = parse_qs(url.query).get("run", [str(RUN_DIR)])[0]
             run_dir = Path(run)
@@ -134,7 +125,9 @@ def main():
     global RUN_DIR, DATA_DIR
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", type=Path, default=RUN_DIR)
-    parser.add_argument("--data", type=Path, help="dataset location for historical runs")
+    parser.add_argument(
+        "--data", type=Path, help="dataset statistics fallback when the run has no snapshot"
+    )
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     RUN_DIR, DATA_DIR = args.run, args.data

@@ -1,6 +1,6 @@
 # LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit
 
-A/B 人评题集；运行 `python eval.py --ab --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters`。
+A/B 人评题集；运行 `python -m lingxi.eval --ab --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters`。
 这些题目用于探索角色与回答风格，不构成独立能力基准。
 
 ## 情感咨询 ×3

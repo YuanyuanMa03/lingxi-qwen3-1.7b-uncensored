@@ -6,25 +6,20 @@ Chinese roleplay and emotional-support post-training for Qwen3-1.7B, with MLX Lo
 `Uncensored` 是目标定位，拒答变化和通用能力需要分别评测。
 当前实现 SFT、拒答探针与 A/B 偏好收集；DPO、GRPO 尚未实现。
 训练阶段可使用 BF16 基座，名称中的 `4Bit` 指最终 MLX 量化产物。
-方法与上游依据见 [METHOD.md](METHOD.md)。
+方法与上游依据见 [METHOD.md](docs/METHOD.md)。
 
 ## 结构
 
 ```text
-prepare.py        数据转换、token 过滤、去重与划分
-train.py          MLX LoRA SFT、配置与指标记录
-persona.py        模型名称与默认人设
-sample.py         终端对话
-eval.py           拒答探针与 A/B 人评
-dashboard.py      本地看板服务
-dashboard.html    看板页面，无前端构建工具
-publish.py        合并、量化、模型卡与可选 HF 上传
-probes.jsonl      拒答探针
-questions.md      A/B 题集
+lingxi/           训练、推理、评测、导出代码与看板页面
+tests/            CLI、真实微型模型与浏览器回归测试
+docs/             方法说明、拒答探针与 A/B 题集
+requirements.txt  运行依赖
+requirements-dev.txt  测试依赖
 ```
 
 数据、基座、运行记录和导出权重分别存入 `data/`、`models/`、`runs/`、`dist/`，留在 Git 外。
-七个 Python 入口直接运行，无包结构。问题与改动使用本仓库的 GitHub Issues。
+代码通过 `python -m lingxi.<模块>` 运行。问题与改动使用本仓库的 GitHub Issues。
 
 ## 准备
 
@@ -59,9 +54,9 @@ ChatML 来源规模较大，下载前检查可用磁盘。已有资源可放入�
 ## 训练与看板
 
 ```bash
-python prepare.py
-python train.py
-python dashboard.py
+python -m lingxi.prepare
+python -m lingxi.train
+python -m lingxi.dashboard
 ```
 
 打开 `http://127.0.0.1:8765`。默认运行目录为 `runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/`。
@@ -71,32 +66,38 @@ python dashboard.py
 
 默认末 16 层、rank 8 / scale 20、batch 1、累积 4、长度 1536、lr 1e-4，开启梯度检查点。
 这些是起始配置，先用 `--iters` 做短程检查，再依据本机内存调整。
-每次训练保存配置快照、数据统计与 `metrics.jsonl`。已有指标的目录必须显式续训：
+每次训练保存配置快照、数据统计与 `metrics.jsonl`。输出目录必须不存在或为空。
+续训从旧检查点加载权重，写入新的 `--out`，保留旧目录中的全部产物：
 
 ```bash
-python train.py \
+python -m lingxi.train \
   --resume runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0000600_adapters.safetensors \
-  --iters 100
+  --out runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit-resume-01 --iters 100
 ```
 
 请按实际存在的检查点选择文件。MLX 续训加载 adapter 权重，`--iters` 是本次新增步数；
-不恢复 optimizer、随机数或数据游标。看板多段日志的累计步数是拼接估计。
+不恢复 optimizer、随机数或数据游标。查看、评测和导出续训产物时，指定新的运行目录或 adapter 路径：
+
+```bash
+python -m lingxi.dashboard --run runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit-resume-01
+python -m lingxi.publish --run runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit-resume-01 --dry-run
+```
 
 ## 评测与导出
 
 ```bash
-python sample.py --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters
-python eval.py --label base
-python eval.py --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters --label sft
-python eval.py --ab --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters
-python publish.py --dry-run
-python publish.py
+python -m lingxi.sample --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters
+python -m lingxi.eval --label base
+python -m lingxi.eval --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters --label sft
+python -m lingxi.eval --ab --adapter runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters
+python -m lingxi.publish --dry-run
+python -m lingxi.publish
 ```
 
 拒答结果写入运行目录，A/B 偏好对写入 `data/user_dpo.jsonl`。
 两模型匹配人设、预算与 seed，并关闭 thinking；探针字符串匹配可能误判，A/B 题集不是独立能力基准。
 
-`--dry-run` 只展示命令与模型卡。导出先生成 `dist/bf16/`，再生成
+`--dry-run` 只展示命令与模型卡。导出先反量化合并为 `dist/bf16/`，再量化生成
 `dist/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/`。
 明确加 `--upload` 才上传 HF，默认目标为 `myy555/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit`；
 其他贡献者通过 `--repo your-account/model-name` 指定自己的仓库，凭据由 HF 管理。
@@ -115,9 +116,23 @@ python publish.py
 仓库公开代码与处理方法，不再分发原始对话。代码许可不代表混合数据或训练权重的许可；
 使用与再分发时应核对来源条款，当前默认配方不能宣称为完全商业可用。
 
-## 验证范围
+## 回归检查
 
-已检查 CLI、数据过滤与统计、A/B 调度、看板 HTTP API、停止状态和无副作用导出预览。
-Qwen3-1.7B 在 128 token 的构造短样本上完成过 4 步训练及 4 步权重续载，
-并验证移动仓库后继续运行。该检查只证明管线与相对路径可用，不能证明模型质量或完整训练资源需求。
-完整合并、量化及导出后质量评测仍待验证，HF 权重尚未通过本仓库发布。
+使用标准库 `unittest`；Playwright 用于验证实际看板页面，开发依赖与训练依赖分开。
+
+```bash
+pip install -r requirements-dev.txt
+python -m playwright install chromium
+python -m unittest discover -s tests -v
+```
+
+测试完全在临时目录构造微型 Qwen3 和 tokenizer，无需下载模型：
+
+- 已有运行目录拒绝覆盖，包括失败的续训启动。
+- 权重在新目录真实续载，旧目录中的所有文件保持不变。
+- 8-bit 基座真实合并、导出，重新加载后的量化层与配置均为 4-bit。
+- 模型卡准确标注记录范围，预览不写入导出文件。
+- 浏览器显示全部保留数据来源与正确配比。
+
+这些检查验证软件行为，不证明完整 1.7B 模型的量化质量、泛化能力或训练资源需求。
+本轮未启动完整训练，也未上传 HF 权重。

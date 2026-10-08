@@ -12,9 +12,9 @@ from mlx_lm.lora import CONFIG_DEFAULTS, train_model
 from mlx_lm.tuner.callbacks import TrainingCallback
 from mlx_lm.tuner.datasets import load_dataset
 
-from persona import NAME
+from .persona import NAME
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class MetricsCallback(TrainingCallback):
@@ -62,8 +62,8 @@ def parse_args():
     args.project = NAME
     args.train, args.mask_prompt = True, True
     args.adapter_path = str(args.out / "adapters")
-    if (args.out / "metrics.jsonl").exists() and not args.resume_adapter_file:
-        parser.error("output already has metrics; use --resume or a new --out")
+    if args.out.exists() and (not args.out.is_dir() or any(args.out.iterdir())):
+        parser.error("output is not empty; choose a new --out for training or resume")
     return args
 
 

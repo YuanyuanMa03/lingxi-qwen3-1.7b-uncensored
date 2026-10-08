@@ -11,9 +11,9 @@ from pathlib import Path
 import pyarrow.parquet as pq
 from transformers import AutoTokenizer
 
-from persona import NAME
+from .persona import NAME
 
-REPO = Path(__file__).resolve().parent
+REPO = Path(__file__).resolve().parents[1]
 DATA = REPO / "data"
 OUT = Path("data/processed")
 

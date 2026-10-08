@@ -155,11 +155,7 @@
   <div class="panel">
     <h3><span class="l-zh">数据配比</span><span class="l-en">Data Mix</span> · <span id="mixTotal" style="color:var(--dim);font-weight:400"></span></h3>
     <div class="mix" id="mixBar"></div>
-    <div class="legend">
-      <span><i style="background:var(--cyan)"></i>Dolphin <span class="l-zh">无审查对话</span><span class="l-en">uncensored</span></span>
-      <span><i style="background:var(--green)"></i>Roleplay-zh <span class="l-zh">中文角色扮演</span><span class="l-en">Chinese RP</span></span>
-      <span><i style="background:var(--orange)"></i>Emotional-zh <span class="l-zh">情感支持</span><span class="l-en">emotional support</span></span>
-    </div>
+    <div class="legend" id="mixLegend"></div>
   </div>
   <div class="panel">
     <h3><span class="l-zh">系统</span><span class="l-en">System</span> · 本机 Local host</h3>
@@ -398,10 +394,22 @@ function paint() {
 
   // mix
   const mix = d.stats && d.stats.by_source || {};
-  const tot = Object.values(mix).reduce((a, b) => a + b, 0) || 1;
-  const segs = [["chatml/dolphin", "#22d3ee"], ["roleplay-zh", "#34d399"], ["emotional-zh", "#fb923c"]];
-  $("mixBar").innerHTML = segs.map(([k, c]) =>
-    `<div style="width:${(mix[k] || 0) / tot * 100}%;background:${c}"></div>`).join("");
+  const tot = Object.values(mix).reduce((a, b) => a + b, 0);
+  const colors = ["#22d3ee", "#a78bfa", "#60a5fa", "#34d399", "#fb923c"];
+  $("mixBar").replaceChildren();
+  $("mixLegend").replaceChildren();
+  Object.entries(mix).forEach(([source, count], i) => {
+    const color = colors[i % colors.length];
+    const segment = document.createElement("div");
+    segment.style.width = `${tot ? count / tot * 100 : 0}%`;
+    segment.style.background = color;
+    $("mixBar").append(segment);
+    const label = document.createElement("span");
+    const swatch = document.createElement("i");
+    swatch.style.background = color;
+    label.append(swatch, document.createTextNode(`${source} (${count.toLocaleString()})`));
+    $("mixLegend").append(label);
+  });
   $("mixTotal").textContent = tot.toLocaleString() + (tot === d.stats.total ? " samples" : " before filtering · 过滤前");
 
   // system
