@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit · Post-training</title>
+<style>
+  :root {
+    --bg: #0a0e14; --bg2: #0e141c; --card: #111823; --card2: #0d141d;
+    --border: #1c2735; --border2: #24324a;
+    --txt: #dce7f5; --dim: #5c7292; --dim2: #3d5170;
+    --cyan: #22d3ee; --green: #34d399; --orange: #fb923c; --red: #f87171;
+    --purple: #a78bfa; --blue: #60a5fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: radial-gradient(1200px 600px at 70% -10%, #10203a 0%, var(--bg) 55%);
+    color: var(--txt); font-family: -apple-system, "SF Pro Text", "PingFang SC",
+      "Microsoft YaHei", "Segoe UI", sans-serif;
+    min-height: 100vh; padding: 20px 26px 30px;
+    font-variant-numeric: tabular-nums;
+  }
+  .num { font-family: "SF Mono", ui-monospace, Menlo, monospace; }
+  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .logo {
+    overflow-wrap: anywhere;
+    font-size: 22px; font-weight: 700; letter-spacing: .5px;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { color: var(--dim); font-size: 13px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--border2); background: var(--card2);
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .pill.run  .dot { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.6s infinite; }
+  .pill.done .dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .pill.wait .dot { background: var(--dim); }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .spacer { flex: 1; }
+  #langBtn {
+    background: var(--card); color: var(--txt); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 5px 12px; cursor: pointer; font-size: 12.5px;
+  }
+  #langBtn:hover { border-color: var(--cyan); }
+  .clock { color: var(--dim); font-size: 12.5px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+  @media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .kpi {
+    background: linear-gradient(180deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px 11px;
+    transition: border-color .3s;
+  }
+  .kpi:hover { border-color: var(--border2); }
+  .kpi .k { font-size: 11.5px; color: var(--dim); margin-bottom: 6px; letter-spacing: .3px; }
+  .kpi .v { font-size: 23px; font-weight: 700; }
+  .kpi .u { font-size: 12px; color: var(--dim); margin-left: 3px; font-weight: 400; }
+  .kpi .d { font-size: 11px; margin-top: 3px; height: 14px; }
+  .up   { color: var(--green); } .down { color: var(--red); }
+  .c-cyan{color:var(--cyan)} .c-green{color:var(--green)} .c-orange{color:var(--orange)}
+  .c-purple{color:var(--purple)} .c-blue{color:var(--blue)} .c-red{color:var(--red)}
+  .grid2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+  @media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel {
+    background: linear-gradient(180deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px 10px;
+  }
+  .panel h3 { font-size: 13.5px; font-weight: 600; color: var(--txt); margin-bottom: 2px; }
+  .panel .hint { font-size: 11px; color: var(--dim); margin-bottom: 8px; }
+  canvas { width: 100%; display: block; }
+  #lossChart { height: 300px; }
+  .mini { height: 84px; }
+  .progress-wrap { margin: 14px 0 4px; }
+  .pbar { height: 14px; background: #0b1119; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; position: relative; }
+  .pfill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    box-shadow: 0 0 14px rgba(34,211,238,.45); border-radius: 999px;
+    transition: width .8s ease;
+  }
+  .pmeta { display: flex; justify-content: space-between; color: var(--dim); font-size: 12.5px; margin-top: 7px; }
+  .pmeta b { color: var(--txt); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { color: var(--dim); text-align: right; font-weight: 500; padding: 4px 6px; border-bottom: 1px solid var(--border); font-size: 11.5px; }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; padding: 5px 6px; border-bottom: 1px solid #131c29; color: var(--txt); }
+  tr:last-child td { border-bottom: none; }
+  .mix { display: flex; height: 16px; border-radius: 999px; overflow: hidden; margin: 8px 0 6px; background: #0b1119; }
+  .mix div { height: 100%; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--dim); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
+
+  footer { margin-top: 16px; color: var(--dim2); font-size: 11.5px; display: flex; gap: 18px; flex-wrap: wrap; }
+
+  /* bilingual modes: body.bi shows both, body.zh / body.en single */
+  .bi .l-en { display: inline; } .bi .l-zh { display: inline; }
+  .zh .l-en { display: none; }   .zh .l-zh { display: inline; }
+  .en .l-zh { display: none; }   .en .l-en { display: inline; }
+  .l-en { color: var(--dim); font-size: .88em; }
+</style>
+</head>
+<body class="bi">
+
+<header>
+  <div>
+    <div class="logo">LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit</div>
+    <div class="sub"><span class="l-zh">后训练监控 · </span><span class="l-en">Post-training Monitor · </span>Qwen3-1.7B + LoRA · MLX</div>
+  </div>
+  <span class="pill wait" id="statusPill"><span class="dot"></span><span id="statusText">…</span></span>
+  <div class="spacer"></div>
+  <span class="clock" id="elapsed"></span>
+  <span class="clock" id="clock"></span>
+  <button id="langBtn">双语 / 中 / EN</button>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid2">
+  <div class="panel">
+    <h3><span class="l-zh">训练损失</span><span class="l-en">Training Loss</span></h3>
+    <div class="hint"><span class="l-zh">EMA 平滑线 + 原始散点 · ◆ 验证点 · 虚线最佳验证</span><span class="l-en">EMA line + raw dots · ◆ validation · dashed = best val</span></div>
+    <canvas id="lossChart"></canvas>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px">
+    <div class="panel">
+      <h3><span class="l-zh">吞吐</span><span class="l-en">Throughput</span></h3>
+      <canvas id="thrChart" class="mini"></canvas>
+    </div>
+    <div class="panel">
+      <h3><span class="l-zh">学习率</span><span class="l-en">Learning Rate</span></h3>
+      <canvas id="lrChart" class="mini"></canvas>
+    </div>
+    <div class="panel">
+      <h3><span class="l-zh">验证历史</span><span class="l-en">Validation</span></h3>
+      <table id="valTable"></table>
+    </div>
+  </div>
+</div>
+
+<div class="panel progress-wrap">
+  <h3><span class="l-zh">训练进度</span><span class="l-en">Progress</span></h3>
+  <div style="height:8px"></div>
+  <div class="pbar"><div class="pfill" id="pfill"></div></div>
+  <div class="pmeta">
+    <span><b id="stepNow">0</b> / <b id="stepTotal">?</b> steps · <b id="pct">0%</b></span>
+    <span><b id="speed">—</b> it/s · <span class="l-zh">已训</span><span class="l-en">trained</span> <b id="tokens">0</b> tokens</span>
+    <span><span class="l-zh">预计剩余</span><span class="l-en">ETA</span> <b id="eta">—</b></span>
+  </div>
+</div>
+
+<div class="grid2" style="margin-top:12px">
+  <div class="panel">
+    <h3><span class="l-zh">数据配比</span><span class="l-en">Data Mix</span> · <span id="mixTotal" style="color:var(--dim);font-weight:400"></span></h3>
+    <div class="mix" id="mixBar"></div>
+    <div class="legend">
+      <span><i style="background:var(--cyan)"></i>Dolphin <span class="l-zh">无审查对话</span><span class="l-en">uncensored</span></span>
+      <span><i style="background:var(--green)"></i>Roleplay-zh <span class="l-zh">中文角色扮演</span><span class="l-en">Chinese RP</span></span>
+      <span><i style="background:var(--orange)"></i>Emotional-zh <span class="l-zh">情感支持</span><span class="l-en">emotional support</span></span>
+    </div>
+  </div>
+  <div class="panel">
+    <h3><span class="l-zh">系统</span><span class="l-en">System</span> · 本机 Local host</h3>
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr); margin:10px 0 2px">
+      <div class="kpi"><div class="k">CPU</div><div class="v num" id="sysCpu">—</div></div>
+      <div class="kpi"><div class="k"><span class="l-zh">内存</span><span class="l-en">RAM</span></div><div class="v num" id="sysRam">—</div></div>
+      <div class="kpi"><div class="k"><span class="l-zh">GPU 峰值</span><span class="l-en">GPU Peak</span></div><div class="v num" id="sysGpu">—</div></div>
+      <div class="kpi"><div class="k">Load</div><div class="v num" id="sysLoad">—</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>runs/<b id="runName">—</b></span>
+  <span><span class="l-zh">刷新率 1s · 数据源 metrics.jsonl（只读，不影响训练）</span><span class="l-en">refresh 1s · reads metrics.jsonl (read-only)</span></span>
+  <span>LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit · MLX · Qwen3</span>
+</footer>
+
+<script>
+const modes = ["bi", "zh", "en"];
+let modeIdx = 0;
+document.getElementById("langBtn").onclick = () => {
+  modeIdx = (modeIdx + 1) % modes.length;
+  document.body.className = modes[modeIdx];
+};
+const $ = id => document.getElementById(id);
+const fmt = (n, d = 4) => n == null ? "—" : Number(n).toFixed(d);
+const fmtTok = n => n == null ? "—" :
+  n >= 1e9 ? (n / 1e9).toFixed(2) + "B" : n >= 1e6 ? (n / 1e6).toFixed(2) + "M" :
+  n >= 1e3 ? (n / 1e3).toFixed(2) + "K" : String(Math.round(n));
+const fmtDur = s => { s = Math.max(0, Math.round(s));
+  const h = s / 3600 | 0, m = (s % 3600) / 60 | 0, ss = s % 60;
+  return (h ? String(h).padStart(2, "0") + ":" : "") + String(m).padStart(2, "0") + ":" + String(ss).padStart(2, "0"); };
+
+function ema(values, k = 0.06) {
+  const out = [];
+  for (let i = 0; i < values.length; i++)
+    out.push(i ? out[i - 1] * (1 - k) + values[i] * k : values[i]);
+  return out;
+}
+const KPI = [
+  { id: "loss",   zh: "当前损失",   en: "Loss",       cls: "c-cyan"   },
+  { id: "ema",    zh: "EMA 损失",   en: "Loss · EMA", cls: "c-blue"   },
+  { id: "val",    zh: "验证损失",   en: "Val Loss",   cls: "c-orange" },
+  { id: "lr",     zh: "学习率",     en: "LR",         cls: "c-purple" },
+  { id: "tps",    zh: "吞吐",       en: "Tokens/s",   cls: "c-green"  },
+  { id: "tokens", zh: "已训 Token", en: "Trained",    cls: "c-green"  },
+  { id: "gpu",    zh: "GPU 峰值",   en: "GPU Peak",   cls: "c-red"    },
+  { id: "itps",   zh: "速度",       en: "Speed",      cls: "c-cyan"   },
+];
+$("kpis").innerHTML = KPI.map(k => `
+  <div class="kpi"><div class="k">${k.zh} <span class="l-en">${k.en}</span></div>
+  <div class="v num ${k.cls}" id="kpi-${k.id}">—</div><div class="d" id="kd-${k.id}"></div></div>`).join("");
+function setupCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect();
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+  return [ctx, r.width, r.height];
+}
+function line(ctx, w, h, series, opts = {}) {
+  // series: [{x, y, color?, size?, dash?}] each drawn as polyline; xs are absolute values
+  const pad = { l: 44, r: 10, t: 10, b: 18 };
+  ctx.clearRect(0, 0, w, h);
+  if (!series.length || !series[0].pts.length) {
+    ctx.fillStyle = "#3d5170"; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(opts.empty || "waiting for data…", w / 2, h / 2); return;
+  }
+  const allPts = series.flatMap(s => s.pts);
+  let x0 = Math.min(...allPts.map(p => p[0])), x1 = Math.max(...allPts.map(p => p[0]));
+  let y0 = opts.yMin != null ? opts.yMin : Math.min(...allPts.map(p => p[1]));
+  let y1 = opts.yMax != null ? opts.yMax : Math.max(...allPts.map(p => p[1]));
+  if (x1 === x0) x1 = x0 + 1; if (y1 === y0) { const dy = Math.max(Math.abs(y0) * 0.1, 1e-8); y0 -= dy; y1 += dy; }
+  const X = v => pad.l + (v - x0) / (x1 - x0) * (w - pad.l - pad.r);
+  const Y = v => h - pad.b - (v - y0) / (y1 - y0) * (h - pad.t - pad.b);
+  // grid
+  ctx.strokeStyle = "#182230"; ctx.lineWidth = 1; ctx.fillStyle = "#5c7292";
+  ctx.font = "10.5px ui-monospace, monospace"; ctx.textAlign = "right";
+  for (let i = 0; i <= 4; i++) {
+    const yy = pad.t + i * (h - pad.t - pad.b) / 4;
+    ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke();
+    const val = y1 - i * (y1 - y0) / 4;
+    ctx.fillText(Math.abs(val) < 0.01 ? val.toExponential(1) : val.toFixed(val < 10 ? 3 : 0), pad.l - 6, yy + 3.5);
+  }
+  ctx.textAlign = "center";
+  for (let i = 0; i <= 4; i++) {
+    const xx = pad.l + i * (w - pad.l - pad.r) / 4;
+    ctx.fillText(String(Math.round(x0 + i * (x1 - x0) / 4)), xx, h - 4);
+  }
+  // hline (best val)
+  if (opts.hline != null) {
+    ctx.save(); ctx.setLineDash([5, 5]); ctx.strokeStyle = "#fbbf2455";
+    ctx.beginPath(); ctx.moveTo(pad.l, Y(opts.hline)); ctx.lineTo(w - pad.r, Y(opts.hline)); ctx.stroke(); ctx.restore();
+  }
+  // hover 十字线
+  if (opts.hoverX != null && opts.hoverPts && opts.hoverPts.length) {
+    const hx = X(opts.hoverX);
+    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = "#22d3ee88"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(hx, pad.t); ctx.lineTo(hx, h - pad.b); ctx.stroke(); ctx.restore();
+    const near = opts.hoverPts.reduce((a, b) =>
+      Math.abs(b[0] - opts.hoverX) < Math.abs(a[0] - opts.hoverX) ? b : a);
+    const hy = Y(near[1]);
+    ctx.fillStyle = "#22d3ee"; ctx.beginPath(); ctx.arc(hx, hy, 4, 0, 7); ctx.fill();
+    const label = `step ${Math.round(near[0])} · loss ${near[1].toFixed(4)}`;
+    ctx.font = "11.5px ui-monospace, monospace";
+    const tw = ctx.measureText(label).width + 14;
+    let bx = hx + 10; if (bx + tw > w - pad.r) bx = hx - tw - 10;
+    ctx.fillStyle = "#0d141dee"; ctx.strokeStyle = "#24324a";
+    ctx.beginPath(); ctx.roundRect(bx, pad.t + 4, tw, 22, 6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#dce7f5"; ctx.textAlign = "left";
+    ctx.fillText(label, bx + 7, pad.t + 19);
+  }
+  for (const s of series) {
+    ctx.save();
+    if (s.dash) ctx.setLineDash(s.dash);
+    if (s.area) {
+      const g = ctx.createLinearGradient(0, pad.t, 0, h - pad.b);
+      g.addColorStop(0, s.color + "3a"); g.addColorStop(1, s.color + "00");
+      ctx.fillStyle = g; ctx.beginPath();
+      s.pts.forEach((p, i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1])));
+      ctx.lineTo(X(s.pts[s.pts.length - 1][0]), h - pad.b);
+      ctx.lineTo(X(s.pts[0][0]), h - pad.b); ctx.closePath(); ctx.fill();
+    }
+    if (s.line) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 1.8;
+      ctx.shadowColor = s.color + "66"; ctx.shadowBlur = 6;
+      ctx.beginPath();
+      s.pts.forEach((p, i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1])));
+      ctx.stroke(); ctx.shadowBlur = 0;
+    }
+    if (s.dots) {
+      ctx.fillStyle = s.color;
+      for (const p of s.pts) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), s.size || 1.4, 0, 7); ctx.fill(); }
+    }
+    if (s.diamonds) {
+      ctx.fillStyle = s.color;
+      for (const p of s.pts) {
+        const xx = X(p[0]), yy = Y(p[1]);
+        ctx.beginPath(); ctx.moveTo(xx, yy - 4); ctx.lineTo(xx + 4, yy);
+        ctx.lineTo(xx, yy + 4); ctx.lineTo(xx - 4, yy); ctx.closePath(); ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+  if (opts.xLabel) { ctx.fillStyle = "#5c7292"; ctx.textAlign = "right"; ctx.font = "10.5px sans-serif";
+    ctx.fillText(opts.xLabel, w - pad.r, pad.t + 2); }
+}
+let DATA = null;
+let HOVER = null;      // {px: 鼠标x像素} 或 null
+let GEOM = null;       // 主图几何信息(供 hover 反查)
+async function refresh() {
+  try {
+    const r = await fetch("/api/metrics?run=" + encodeURIComponent(RUN));
+    if (!r.ok) throw new Error(`metrics HTTP ${r.status}`);
+    DATA = await r.json();
+    paint();
+  } catch (e) { $("statusText").textContent = "ERROR · 读取失败"; console.warn(e); }
+}
+
+function paint() {
+  const d = DATA; if (!d) return;
+  // status
+  const pill = $("statusPill");
+  pill.className = "pill " + (d.status === "COMPLETED" ? "done" : d.status === "TRAINING" ? "run" : "wait");
+  $("statusText").textContent = d.status === "COMPLETED" ? "COMPLETED ✓ 完成"
+    : d.status === "TRAINING" ? "TRAINING · 训练中"
+    : d.status === "STOPPED" ? "STOPPED · 已停止"
+    : d.status === "STALE" ? "HISTORY · 历史记录" : "WAITING · 等待";
+  $("elapsed").textContent = "⏱ " + fmtDur(d.elapsed || 0);
+  $("runName").textContent = d.run;
+
+  const t = d.train || [], v = d.val || [];
+  const last = t[t.length - 1] || {};
+  const losses = t.map(x => x.train_loss);
+  const emaV = ema(losses);
+  const best = v.length ? Math.min(...v.map(x => x.val_loss)) : null;
+
+  $("kpi-loss").textContent = fmt(last.train_loss);
+  $("kpi-ema").textContent = fmt(emaV[emaV.length - 1]);
+  $("kpi-val").textContent = fmt(v.length ? v[v.length - 1].val_loss : null);
+  $("kpi-lr").textContent = last.learning_rate ? last.learning_rate.toExponential(2) : "—";
+  $("kpi-tps").textContent = fmt(last.tokens_per_second, 0);
+  $("kpi-tokens").textContent = fmtTok(last.trained_tokens);
+  $("kpi-gpu").textContent = fmt(last.peak_memory, 2) + " GB";
+  $("kpi-gpu").className = "v num " +
+    (last.peak_memory > 10.5 ? "c-red" : last.peak_memory > 9.5 ? "c-orange" : "c-green");
+  $("kpi-itps").textContent = fmt(last.iterations_per_second, 3);
+  const dl = losses.length >= 12 ? losses[losses.length - 1] - losses[losses.length - 12] : null;
+  if (dl != null) {
+    $("kd-loss").innerHTML = `<span class="${dl <= 0 ? "up" : "down"}">${dl <= 0 ? "▼" : "▲"} ${Math.abs(dl).toFixed(4)}</span>`;
+  }
+
+  // loss chart (hover: 鼠标位置反查最近数据点)
+  let hoverX = null, hoverPts = null;
+  const emaPts = t.map((x, i) => [x.iter_c, emaV[i]]);
+  if (HOVER && GEOM) {
+    const fx = GEOM.x0 + (HOVER.px - GEOM.pad.l) / (GEOM.w - GEOM.pad.l - GEOM.pad.r) * (GEOM.x1 - GEOM.x0);
+    hoverX = Math.max(GEOM.x0, Math.min(GEOM.x1, fx));
+    hoverPts = emaPts;
+  }
+  let [ctx, w, h] = setupCanvas($("lossChart"));
+  line(ctx, w, h, [
+    { pts: t.map((x, i) => [x.iter_c, x.train_loss]), dots: true, color: "#3d5170", size: 1.2 },
+    { pts: emaPts, line: true, area: true, color: "#22d3ee", width: 2 },
+    { pts: v.map(x => [x.iter_c, x.val_loss]), diamonds: true, color: "#fb923c" },
+  ], { hline: best, xLabel: "logged steps · 记录步数", hoverX, hoverPts });
+  GEOM = emaPts.length ? { x0: Math.min(...emaPts.map(p => p[0])), x1: Math.max(...emaPts.map(p => p[0])), pad: { l: 44, r: 10 }, w } : null;
+
+  // throughput & lr
+  [ctx, w, h] = setupCanvas($("thrChart"));
+  line(ctx, w, h, [{ pts: t.map(x => [x.iter_c, x.tokens_per_second]), line: true, area: true, color: "#34d399", width: 1.6 }],
+    { xLabel: "tok/s" });
+  [ctx, w, h] = setupCanvas($("lrChart"));
+  line(ctx, w, h, [{ pts: t.map(x => [x.iter_c, x.learning_rate]), line: true, area: true, color: "#a78bfa", width: 1.6 }],
+    { xLabel: "lr" });
+
+  // progress
+  const p = d.progress || {};
+  $("stepNow").textContent = p.cum_iter ?? "—";
+  $("stepTotal").textContent = p.cum_total ?? "?";
+  $("pct").textContent = (p.frac * 100).toFixed(1) + "%";
+  $("pfill").style.width = (p.frac * 100).toFixed(1) + "%";
+  $("speed").textContent = fmt(p.it_per_sec, 3);
+  $("tokens").textContent = fmtTok(last.trained_tokens);
+  $("eta").textContent = p.eta_sec != null ? fmtDur(p.eta_sec) : "—";
+
+  // val table (用累计步数 iter_c, 跨段单调递增)
+  $("valTable").innerHTML =
+    `<tr><th>step</th><th>val</th><th>Δ</th></tr>` +
+    v.slice(-6).reverse().map((x, i, arr) => {
+      const prev = arr[i + 1];
+      const dd = prev ? (x.val_loss - prev.val_loss) : null;
+      return `<tr><td>${x.iter_c}</td><td>${fmt(x.val_loss)}</td>
+        <td class="${dd == null ? "" : dd <= 0 ? "up" : "down"}">${dd == null ? "—" : (dd > 0 ? "+" : "") + dd.toFixed(4)}</td></tr>`;
+    }).join("");
+
+  // mix
+  const mix = d.stats && d.stats.by_source || {};
+  const tot = Object.values(mix).reduce((a, b) => a + b, 0) || 1;
+  const segs = [["chatml/dolphin", "#22d3ee"], ["roleplay-zh", "#34d399"], ["emotional-zh", "#fb923c"]];
+  $("mixBar").innerHTML = segs.map(([k, c]) =>
+    `<div style="width:${(mix[k] || 0) / tot * 100}%;background:${c}"></div>`).join("");
+  $("mixTotal").textContent = tot.toLocaleString() + (tot === d.stats.total ? " samples" : " before filtering · 过滤前");
+
+  // system
+  const s = d.sys || {};
+  $("sysCpu").textContent = fmt(s.cpu, 1) + "%";
+  $("sysRam").textContent = s.ram_pct != null ? fmt(s.ram_pct, 1) + "%" : "—";
+  $("sysGpu").textContent = fmt(last.peak_memory, 2) + "G";
+  $("sysLoad").textContent = fmt(s.load1, 1);
+}
+
+const RUN = new URLSearchParams(location.search).get("run") || "";
+setInterval(() => { $("clock").textContent = new Date().toLocaleTimeString("zh-CN", { hour12: false }); }, 1000);
+$("clock").textContent = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+
+// 主图 hover 十字线
+$("lossChart").addEventListener("mousemove", e => {
+  HOVER = { px: e.offsetX };
+  if (DATA) paint();
+});
+$("lossChart").addEventListener("mouseleave", () => { HOVER = null; if (DATA) paint(); });
+
+refresh();
+setInterval(refresh, 1000);
+window.addEventListener("resize", () => DATA && paint());
+</script>
+</body>
+</html>
