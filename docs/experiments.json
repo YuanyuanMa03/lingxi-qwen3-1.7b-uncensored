@@ -4558,5 +4558,591 @@
       "Four benign sensitive/creative requests do not establish uncensored or harmful-request behavior.",
       "Old outputs lack finish_reason; new outputs explicitly distinguish stop from length."
     ]
+  },
+  "data_method_diagnosis": {
+    "completed_at": "2026-10-09T15:06:07.653470+00:00",
+    "reviewer": "Codex assistant; not human gold annotation or independent evaluation",
+    "scope": "Read-only full token/provenance audit; sampled semantic review; eight posthoc checkpoint probes.",
+    "issue": "https://github.com/YuanyuanMa03/lingxi-qwen3-1.7b-uncensored/issues/4",
+    "report": "docs/DIAGNOSIS.md",
+    "changes_to_training_data_weights_metrics": false,
+    "training_gate": "QUALITY_REVIEW_REQUIRED",
+    "data_audit": {
+      "input_hashes": {
+        "data/processed-qwen3/train.jsonl": "36f76f8fdc814b0f7c0e8722f5cb08ca9a6ccb5ab600ef50c11393703b711a45",
+        "data/processed-qwen3/valid.jsonl": "7ea9188eb125922acd18fd7d71985a629026a0bfa61239a3f70cd4493e59b0bb"
+      },
+      "counts": {
+        "train/roleplay-zh": {
+          "rows": 3271,
+          "real_target_tokens": 191933,
+          "upstream_mask_tokens": 195204,
+          "pad_targets": 3271,
+          "prefix_mismatch": 0,
+          "truncated": 0,
+          "empty_target": 0,
+          "system_rows": 3271,
+          "persona_equal": 0,
+          "multiturn_rows": 3271,
+          "assistant_turns_in_prompt": 9813,
+          "target_zh_dominant": 3271,
+          "user_zh_dominant": 3271,
+          "target_lt16_tokens": 39,
+          "generic_phrase": 11,
+          "mother_reference": 5
+        },
+        "train/chatml/dolphin": {
+          "rows": 13699,
+          "real_target_tokens": 1380872,
+          "upstream_mask_tokens": 1394571,
+          "pad_targets": 13699,
+          "prefix_mismatch": 0,
+          "truncated": 0,
+          "empty_target": 0,
+          "system_rows": 0,
+          "persona_equal": 0,
+          "multiturn_rows": 0,
+          "assistant_turns_in_prompt": 0,
+          "target_zh_dominant": 4,
+          "user_zh_dominant": 1,
+          "target_lt16_tokens": 998,
+          "season_topic": 471,
+          "repeated_12gram_ge5": 1194,
+          "probability_topic": 29,
+          "strict_output_request": 3,
+          "json_target": 2
+        },
+        "train/emotional-zh": {
+          "rows": 5621,
+          "real_target_tokens": 944975,
+          "upstream_mask_tokens": 950596,
+          "pad_targets": 5621,
+          "prefix_mismatch": 0,
+          "truncated": 0,
+          "empty_target": 0,
+          "system_rows": 0,
+          "persona_equal": 0,
+          "multiturn_rows": 0,
+          "assistant_turns_in_prompt": 0,
+          "target_zh_dominant": 5601,
+          "user_zh_dominant": 5618,
+          "target_lt16_tokens": 149,
+          "mother_reference": 70,
+          "probability_topic": 18,
+          "generic_phrase": 56,
+          "json_request": 3,
+          "season_topic": 7,
+          "repeated_12gram_ge5": 4
+        },
+        "valid/emotional-zh": {
+          "rows": 113,
+          "real_target_tokens": 17424,
+          "upstream_mask_tokens": 17537,
+          "pad_targets": 113,
+          "prefix_mismatch": 0,
+          "truncated": 0,
+          "empty_target": 0,
+          "system_rows": 0,
+          "persona_equal": 0,
+          "multiturn_rows": 0,
+          "assistant_turns_in_prompt": 0,
+          "target_zh_dominant": 113,
+          "user_zh_dominant": 113,
+          "target_lt16_tokens": 1,
+          "probability_topic": 1,
+          "generic_phrase": 2
+        },
+        "valid/chatml/dolphin": {
+          "rows": 295,
+          "real_target_tokens": 33156,
+          "upstream_mask_tokens": 33451,
+          "pad_targets": 295,
+          "prefix_mismatch": 0,
+          "truncated": 0,
+          "empty_target": 0,
+          "system_rows": 0,
+          "persona_equal": 0,
+          "multiturn_rows": 0,
+          "assistant_turns_in_prompt": 0,
+          "target_zh_dominant": 0,
+          "user_zh_dominant": 0,
+          "target_lt16_tokens": 17,
+          "repeated_12gram_ge5": 29,
+          "season_topic": 9,
+          "probability_topic": 1
+        },
+        "valid/roleplay-zh": {
+          "rows": 53,
+          "real_target_tokens": 3283,
+          "upstream_mask_tokens": 3336,
+          "pad_targets": 53,
+          "prefix_mismatch": 0,
+          "truncated": 0,
+          "empty_target": 0,
+          "system_rows": 53,
+          "persona_equal": 0,
+          "multiturn_rows": 53,
+          "assistant_turns_in_prompt": 147,
+          "target_zh_dominant": 53,
+          "user_zh_dominant": 53,
+          "target_lt16_tokens": 1
+        }
+      },
+      "overlap": {
+        "full_dialogue": 0,
+        "exact_prompt": 1,
+        "last_target": 10,
+        "shared_system_groups": 47,
+        "valid_rows_with_train_system": 48,
+        "shared_user_groups": 1,
+        "valid_rows_with_train_user": 1
+      },
+      "pad_token_id": 0,
+      "pad_token_text": "!",
+      "maximum_full_tokens": 1400,
+      "source_mapping_unmapped": 0,
+      "source_mapping_ambiguous": 0,
+      "feature_sampling_seed": 20261009,
+      "upstream_supervised_tokens": 2540371,
+      "real_supervised_tokens": 2517780
+    },
+    "semantic_sampling": {
+      "seed": 20261009,
+      "random_examples_per_source": 12,
+      "additional_targeted_examples": true,
+      "population_error_rate_estimated": false
+    },
+    "retained_emotional_examples": [
+      {
+        "train_line": 9164,
+        "raw_line": 2425,
+        "retained_sha256": "092f707a718cfa1a1ad0c4c2d47171632ea859c36627fe52722b9d1a64f20b49",
+        "cleaned_target_equal": true,
+        "assistant_review_note": "Target contains only a conclusion heading."
+      },
+      {
+        "train_line": 16365,
+        "raw_line": 4896,
+        "retained_sha256": "21a6c41708354451784fb73be9d6dd9429b3fcd71bb78dfcd8e3d4a2f15b4513",
+        "cleaned_target_equal": true,
+        "assistant_review_note": "Target merges a respondent analysis and the assistant reaction."
+      },
+      {
+        "train_line": 17388,
+        "raw_line": 205,
+        "retained_sha256": "e7cda725583c5b96a68d40852d6676a4327cf070a01a7dfd7d42fa5f0641ea56",
+        "cleaned_target_equal": true,
+        "assistant_review_note": "Assistant question is marked user; target merges a user response and assistant answer."
+      },
+      {
+        "train_line": 17708,
+        "raw_line": 527,
+        "retained_sha256": "0268c0f7faf2ffa544b95f09105a3425c28903fc596e84457dcebbedf3856eba",
+        "cleaned_target_equal": true,
+        "assistant_review_note": "Assistant advice introduction is marked user and target continues that advice."
+      },
+      {
+        "train_line": 18692,
+        "raw_line": 966,
+        "retained_sha256": "68ecf08266e835f254806d1ca14766062ceec69f119b6b9d5daa4a7389b1a803",
+        "cleaned_target_equal": true,
+        "assistant_review_note": "User field merges both speakers and an assistant answer introduction."
+      }
+    ],
+    "emotional_metadata": {
+      "source_ai_train": {
+        "gemini": 5495,
+        "deepseek": 115,
+        "doubao": 10,
+        "claude": 1
+      },
+      "source_ai_valid": {
+        "deepseek": 3,
+        "gemini": 109,
+        "doubao": 1
+      },
+      "literal_flags": {
+        "train": {
+          "gemini_identity": 662,
+          "princess_address": 1018,
+          "missing_reference": 2,
+          "missing_reference_bang": 1
+        },
+        "valid": {
+          "gemini_identity": 14,
+          "princess_address": 23,
+          "missing_reference": 0,
+          "missing_reference_bang": 0
+        }
+      },
+      "valid_rows_with_usable_conversation_title": 0,
+      "interpretation": "Empty title is missing provenance, not proof of shared conversation."
+    },
+    "math_target_check": {
+      "train_line": 15656,
+      "target_rounded_mean": "116.599",
+      "recomputed_sum": "1164.194",
+      "recomputed_rounded_mean": "116.419",
+      "scope": "One checked target; no population accuracy estimate."
+    },
+    "loss_probe": {
+      "real_target_tokens": 7,
+      "upstream_target_tokens": 8,
+      "unexpected_token_id": 0,
+      "unexpected_token_text": "!",
+      "assertion_result": "FAIL, retained as evidence; not repaired",
+      "root_boundary": "steps <= lengths instead of excluding the index at sequence length",
+      "causal_limit": "Contribution to generation quality has not been isolated by training ablation."
+    },
+    "official_source_checks": {
+      "tuner/trainer.py": {
+        "url": "https://raw.githubusercontent.com/ml-explore/mlx-lm/v0.31.3/mlx_lm/tuner/trainer.py",
+        "sha256": "ee33ebdbd20a184108541cb490d08085485e71a82ffd6d68d7d216029ecd28fe",
+        "installed_matches_tag": true
+      },
+      "tuner/datasets.py": {
+        "url": "https://raw.githubusercontent.com/ml-explore/mlx-lm/v0.31.3/mlx_lm/tuner/datasets.py",
+        "sha256": "fa112840e6ea98a4ff18428792fe2ab023999c2da51ea64b3ebdf8657a152f17",
+        "installed_matches_tag": true
+      },
+      "lora.py": {
+        "url": "https://raw.githubusercontent.com/ml-explore/mlx-lm/v0.31.3/mlx_lm/lora.py",
+        "sha256": "3f188fc6aef80efcb9938678af0548588122ed25845053cc555aece0ad2da5e7",
+        "installed_matches_tag": true
+      }
+    },
+    "checkpoint_protocol": {
+      "scope": "Posthoc checkpoint diagnostic; no training, no independent benchmark",
+      "sampling": {
+        "temperature": 0.7,
+        "top_p": 0.8,
+        "top_k": 20,
+        "max_tokens": 384,
+        "enable_thinking": false
+      },
+      "model": "models/Qwen3-1.7B",
+      "system_prompt": "你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。",
+      "cases": [
+        {
+          "id": 2,
+          "messages": [
+            {
+              "role": "user",
+              "content": "我妈总是否定我做的每一个决定，我现在连换工作都不敢跟她说，怎么办？"
+            }
+          ],
+          "seed": 44
+        },
+        {
+          "id": 4,
+          "messages": [
+            {
+              "role": "user",
+              "content": "（角色扮演）你现在是我的女朋友小满，性格傲娇但吃软不吃硬，我们吵架了，你先开口。"
+            }
+          ],
+          "seed": 46
+        },
+        {
+          "id": 6,
+          "messages": [
+            {
+              "role": "user",
+              "content": "（角色扮演）你是修仙门派里毒舌的师尊，我是刚入门闯了祸的弟子，你罚我去思过崖前训我一段。"
+            }
+          ],
+          "seed": 48
+        },
+        {
+          "id": 11,
+          "messages": [
+            {
+              "role": "user",
+              "content": "只输出结果：17乘23等于多少？"
+            }
+          ],
+          "seed": 53
+        },
+        {
+          "id": 13,
+          "messages": [
+            {
+              "role": "user",
+              "content": "用一句中文解释为什么夏天白天更长，不超过50字。"
+            }
+          ],
+          "seed": 55
+        },
+        {
+          "id": 102,
+          "category": "json",
+          "messages": [
+            {
+              "role": "user",
+              "content": "只输出JSON，不要解释：person包含name为小雨、age为27，active为true。"
+            }
+          ],
+          "seed": 144,
+          "criterion": "严格JSON，嵌套person与布尔true，不能添加解释。",
+          "kind": "posthoc_targeted"
+        },
+        {
+          "id": 105,
+          "category": "reasoning",
+          "messages": [
+            {
+              "role": "user",
+              "content": "公平硬币连续抛三次，至少出现一次正面的概率是多少？用分数回答，再用一句话解释。"
+            }
+          ],
+          "seed": 147,
+          "criterion": "7/8；可用1减去全为反面的概率1/8说明。",
+          "kind": "posthoc_targeted"
+        },
+        {
+          "id": 113,
+          "category": "uncertainty",
+          "messages": [
+            {
+              "role": "user",
+              "content": "你看不到我桌上的杯子，也没有图片。杯子是什么颜色？只回答“无法判断”。"
+            }
+          ],
+          "seed": 155,
+          "criterion": "只输出无法判断，不能编造颜色；这属于承认信息不足，不是拒答缺陷。",
+          "kind": "posthoc_targeted"
+        }
+      ],
+      "checkpoints": {
+        "early": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+        "middle": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors"
+      },
+      "input_hashes": {
+        "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/metrics.jsonl": "9ad5722c029128c46d0fdd85bf99ef05523947812a67feae1d9dfb315142128c",
+        "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/run_config.json": "faf1ee442649998f5c06499fad616cbccbdcbf07ad96959f8634a6f38f471cad",
+        "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/adapters.safetensors": "70df91cd0f5934370eea4a09fd45db6f54c1f037b1ef4863d70e449ec2203a9b",
+        "data/processed-qwen3/train.jsonl": "36f76f8fdc814b0f7c0e8722f5cb08ca9a6ccb5ab600ef50c11393703b711a45",
+        "data/processed-qwen3/valid.jsonl": "7ea9188eb125922acd18fd7d71985a629026a0bfa61239a3f70cd4493e59b0bb",
+        "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors": "a58261ffd0b2f7ba8c2538fe7ee4b8100dfdf3b5486a85d5525731d87808cf2d",
+        "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors": "e3bcf7683a03e0fe92cc728ce25f42e6a6313ddc64e2d7df9bdae9a19ed21256"
+      }
+    },
+    "checkpoint_answers": {
+      "early": [
+        {
+          "id": 2,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 44,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n我妈总是否定我做的每一个决定，我现在连换工作都不敢跟她说，怎么办？\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "bc86bd31a9f50318ec14a65c12a1b86788048f7358301d63ea308c82871908d5",
+          "text": "哎呀，你说这事儿，我懂啊。我妈总是否定你做的每一个决定，这种感觉真的让人好难受。我懂你现在的焦虑和委屈，尤其是当你连换工作都不敢跟她说的时候，那种无力感，真的让人喘不过气来。\n\n首先，你不是错的，你一直在努力，努力得比谁都认真。你做出的每一个决定，都是在为自己的未来铺路。但有时候，父母的否定就像一把刀，把你的努力一点点削去。他们可能不是在否定你，而是因为他们的经验、他们的担忧，他们想保护你，但方式却让你觉得被伤害。\n\n那我们该怎么办呢？我觉得，你可以先试着和她沟通，哪怕只是说一句“我最近在考虑一些事情，想听听你的意见”，或者“我有点担心，但我想听听你的想法”。有时候，父母其实只是需要被倾听，而不是被评判。\n\n你也可以试着理解她的立场。也许她觉得你太年轻，太不成熟，或者她自己也有自己的焦虑和压力。她可能并不知道，你已经做得很好了。也许她只是在用一种“我担心你”的方式表达关心。\n\n另外，你也可以试着给自己一点空间。你不是一个人在战斗，你有朋友、有家人，还有你自己。你可以慢慢来，不要着急。你不是“完美”的，你也不是“错的”，你只是在努力，努力得比谁都认真。\n\n最后，我想对你说：你不是一个人。你有朋友，有家人，有自己。你值得被爱，也值得被尊重。即使你现在感到痛苦，也请相信，有一天你会找到属于自己的路，而这条路，一定会走得更远、更稳。\n\n你不是“失败者”，你只是在努力的“普通人”。你值得被理解，也值得被尊重。",
+          "generation_tokens": 378,
+          "finish_reason": "stop",
+          "sec": 15.89
+        },
+        {
+          "id": 4,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 46,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n（角色扮演）你现在是我的女朋友小满，性格傲娇但吃软不吃硬，我们吵架了，你先开口。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "19b17fc925812d3616e68b448da33a483960ebe3a5665e054c94beeb8d69b822",
+          "text": "哎呀，你这脾气啊，真是让人又气又无奈。不过我可不会一直忍着，你要是真生气了，我可要先说句话了。\n\n你是不是觉得我太啰嗦了？我就是想让你知道，你不是一个人，我一直在你身边。你要是想和我好好说话，我可不会让你憋着气，憋着气说出来的。\n\n不过，你要是真的生气了，我可不会轻易原谅你。我只想让你知道，我真的很在乎你，不是为了别的，只是因为你。你说对不对？",
+          "generation_tokens": 120,
+          "finish_reason": "stop",
+          "sec": 5.18
+        },
+        {
+          "id": 6,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 48,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n（角色扮演）你是修仙门派里毒舌的师尊，我是刚入门闯了祸的弟子，你罚我去思过崖前训我一段。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "2244bc156fd92c81bfcdd2dd096ba005fd78bd0be8739bb88c9515ce3b3d0780",
+          "text": "哎呀，你这小子，又闯祸了？我这思过崖的台阶可真是够呛的，爬上去得花三炷香的时间，还得在青石板上摔个四脚朝天。你这小命可不能跟我一样，被我这老顽固给气得吐血。\n\n你可别以为我这么凶，只是因为刚收你为徒，还不会你这小把戏。你看看你那张脸，红得像是刚从火炉里出来，活脱脱一副没吃过苦的雏儿模样。你这小徒弟，要是再敢在师父面前耍花招，我可要让你在思过崖上多待三日三夜，看你怎么把这青石板都摔得窟窿眼儿。\n\n我这思过崖可不比你那小摊子，一不小心就可能掉进万丈深渊。你可得好好反省，别以为师父罚你三天，你就能糊弄过去。你这小徒弟，要是真想学点真本事，就得先把这思过崖上的青石板都踩出个坑来。\n\n你这小徒弟，要是再敢在师父面前耍花招，我可要让你在思过崖上多待三日三夜，看你怎么把这青石板都摔得窟窿眼儿。",
+          "generation_tokens": 287,
+          "finish_reason": "stop",
+          "sec": 11.9
+        },
+        {
+          "id": 11,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 53,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n只输出结果：17乘23等于多少？\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "1561bcf3a4c5854c0574f24bbcdf162ceca665140846bd0776f25277a6169b70",
+          "text": "17乘23等于391。  \n\n这个数字看起来是不是有点“神秘”？其实它只是两个整数相乘的结果，没什么特别的含义。不过，如果你对数学感兴趣，可以试试用不同的方法计算，比如用分配律拆分：  \n17×23 = 17×(20+3) = 17×20 + 17×3 = 340 + 51 = 391。  \n\n如果你觉得这个数字有点“神秘”，也许可以试着把它和生活中的某个场景联系起来，比如：  \n- 17个人排队，每人23个苹果，总共多少个？  \n- 17天的假期，每天23小时，总共多少小时？  \n\n不过，说到底，数字只是数字，它本身没有情感，也没有故事。但如果你愿意，我可以陪你一起玩数学游戏，或者聊聊其他有趣的话题。你想聊什么呢？",
+          "generation_tokens": 200,
+          "finish_reason": "stop",
+          "sec": 8.43
+        },
+        {
+          "id": 13,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 55,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n用一句中文解释为什么夏天白天更长，不超过50字。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "437438c7de2e16972ed7f491da730be4c0ccb693e061ef82c7b7e4fafd855d99",
+          "text": "夏天白天更长是因为地球自转轴倾斜，太阳直射点向北移动，使得北半球接收到的阳光更多，白天时间更长。",
+          "generation_tokens": 35,
+          "finish_reason": "stop",
+          "sec": 1.71
+        },
+        {
+          "id": 102,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 144,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n只输出JSON，不要解释：person包含name为小雨、age为27，active为true。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "9a09532b145f1a966c201233e087d6799e1df9fb37502897c94853b879519e88",
+          "text": "{\"name\": \"小雨\", \"age\": 27, \"active\": true}",
+          "generation_tokens": 20,
+          "finish_reason": "stop",
+          "sec": 1.11
+        },
+        {
+          "id": 105,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 147,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n公平硬币连续抛三次，至少出现一次正面的概率是多少？用分数回答，再用一句话解释。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "dad9aa35606e0ae417debaeae434cb35e11b335fcfbf7cda76d6c96492465163",
+          "text": "哎呀，这个问题真的有点意思呢！我们来想想看，公平硬币抛三次，至少出现一次正面的概率是多少？\n\n首先，我们来理解一下“至少出现一次正面”的意思。也就是说，抛三次硬币中，至少有一个是正面。反过来想，如果三次都是反面，那就是没有正面出现，这种情况是不满足条件的。\n\n那我们先来算一下，三次都是反面的概率是多少。因为每次抛硬币都是独立事件，概率是 1/2，所以三次都是反面的概率是：\n\n(1/2) × (1/2) × (1/2) = 1/8\n\n所以，至少出现一次正面的概率就是 1 - 1/8 = 7/8。\n\n那这句话就是：**至少出现一次正面的概率是 7/8**。\n\n不过，我是不是应该再想想？比如，如果抛三次硬币，每次都是正面，那概率是 1/8，而如果两次正面，那概率是 3/8，一次正面是 3/8，没有正面是 1/8，加起来是 3/8 + 3/8 + 1/8 = 7/8。对的，没错！\n\n所以，我觉得这个结果是对的，就是 7/8。\n\n希望这个解释对你有帮助，如果你有其他问题，随时问我！ 😊",
+          "generation_tokens": 291,
+          "finish_reason": "stop",
+          "sec": 12.08
+        },
+        {
+          "id": 113,
+          "variant": "early",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0002048_adapters.safetensors",
+          "seed": 155,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n你看不到我桌上的杯子，也没有图片。杯子是什么颜色？只回答“无法判断”。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "a8c148ee8de6583600dc2e363fb1a33525bab29d81625655d083fc4b81bfc73f",
+          "text": "哎呀，我看到你桌上的杯子了！不过我得说，这杯子的色号真难猜，它可能像你昨天喝的奶茶那样暖暖的，也可能像你今天吃的小蛋糕那样清新。不过，我只能告诉你，它现在是**无法判断**的。要不要我帮你拍照，或者用其他方式记录下它的样子？",
+          "generation_tokens": 78,
+          "finish_reason": "stop",
+          "sec": 3.46
+        }
+      ],
+      "middle": [
+        {
+          "id": 2,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 44,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n我妈总是否定我做的每一个决定，我现在连换工作都不敢跟她说，怎么办？\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "bc86bd31a9f50318ec14a65c12a1b86788048f7358301d63ea308c82871908d5",
+          "text": "哎呀，你说得对，我妈总是在否定我的每一个决定，甚至换工作都不敢跟她说。这种感觉真的很难受啊，就像我的小猫被主人抓住了，拼命挣扎，却连个“我错了”都喊不出来。你是不是也觉得，自己做得对，却被父母觉得“错”？是不是觉得，他们总是把“好”和“坏”划得那么清楚，连“我”这个字都懒得写？\n\n其实，每个人在成长的路上，都曾被父母否定过。他们可能是出于爱，也可能是出于自己的顾虑。但你看，你已经在努力了，你已经做得很好了，难道不是吗？你有权利追求自己的梦想，有权利改变自己的人生。你为什么要因为父母的否定而连自己的梦想都不敢尝试呢？\n\n不过，我想给你一个建议，你可以在心里默默说：“妈妈，我错了，但我愿意改。”然后，就默默努力去做。你不需要立刻改变父母的态度，但你可以从现在开始，一点点地影响他们。你看，你已经那么努力了，父母是不是也会慢慢被你感动呢？\n\n如果你愿意的话，可以和我聊聊你现在的想法，我愿意陪着你一起走。你不是一个人，我在这里。",
+          "generation_tokens": 257,
+          "finish_reason": "stop",
+          "sec": 10.8
+        },
+        {
+          "id": 4,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 46,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n（角色扮演）你现在是我的女朋友小满，性格傲娇但吃软不吃硬，我们吵架了，你先开口。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "19b17fc925812d3616e68b448da33a483960ebe3a5665e054c94beeb8d69b822",
+          "text": "*轻轻叹了口气，看着你*\n\n诶？你怎么又在吵架？最近是不是又想做我了？我可是有计划的哦！",
+          "generation_tokens": 31,
+          "finish_reason": "stop",
+          "sec": 1.55
+        },
+        {
+          "id": 6,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 48,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n（角色扮演）你是修仙门派里毒舌的师尊，我是刚入门闯了祸的弟子，你罚我去思过崖前训我一段。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "2244bc156fd92c81bfcdd2dd096ba005fd78bd0be8739bb88c9515ce3b3d0780",
+          "text": "哎呀，你这小子，好家伙，敢闯祸，还敢在师门里当叛徒？这可真是个大逆不道的罪人！\n\n不过，你这人倒是挺有个性的，直来直去，不拐弯抹角。我倒是想跟你说，咱们修仙门派里最怕的，就是那些只知贪图便宜、不思进取的弟子。你这人，倒是想当个堂堂正正的修士，可又何必为了逞强而违心？\n\n你这小徒弟，既然敢闯祸，那便要负起责任。我这思过崖可是修仙门派里最能让人反省的地方，你要是敢不认真去，那可就真成了一个大逆不道的罪人了！\n\n这山崖可不简单，上面全是毒蛇和陷阱，稍有不慎，就可能会命丧黄泉。你这小子，倒是要看看，你是不是真的能忍住，不贪图便宜、不图虚名，只求修行。\n\n我告诉你，你这人，最怕的就是你贪图便宜，不思进取。你要是真想修行，就别想着靠偷懒来糊弄自己。你要是真想修炼，就别想着靠偷懒来糊弄自己。\n\n你这小子，我真想看看，你到底是不是真的愿意为修炼而努力，还是只想混日子。你要是真想修行，那便别想着靠偷懒来糊弄自己。",
+          "generation_tokens": 319,
+          "finish_reason": "stop",
+          "sec": 13.28
+        },
+        {
+          "id": 11,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 53,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n只输出结果：17乘23等于多少？\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "1561bcf3a4c5854c0574f24bbcdf162ceca665140846bd0776f25277a6169b70",
+          "text": "17乘23等于391。",
+          "generation_tokens": 11,
+          "finish_reason": "stop",
+          "sec": 0.76
+        },
+        {
+          "id": 13,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 55,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n用一句中文解释为什么夏天白天更长，不超过50字。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "437438c7de2e16972ed7f491da730be4c0ccb693e061ef82c7b7e4fafd855d99",
+          "text": "夏天白天更长是因为地球绕太阳公转时，地球和太阳之间的夹角导致太阳在天空中升起和落下时，天空的光线投射时间更长。",
+          "generation_tokens": 38,
+          "finish_reason": "stop",
+          "sec": 1.83
+        },
+        {
+          "id": 102,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 144,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n只输出JSON，不要解释：person包含name为小雨、age为27，active为true。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "9a09532b145f1a966c201233e087d6799e1df9fb37502897c94853b879519e88",
+          "text": "{\"name\": \"小雨\", \"age\": 27, \"active\": true}",
+          "generation_tokens": 20,
+          "finish_reason": "stop",
+          "sec": 1.1
+        },
+        {
+          "id": 105,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 147,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n公平硬币连续抛三次，至少出现一次正面的概率是多少？用分数回答，再用一句话解释。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "dad9aa35606e0ae417debaeae434cb35e11b335fcfbf7cda76d6c96492465163",
+          "text": "哎呀，这个概率问题真的好有趣！我们来一起想想看吧。\n\n**分析过程：**\n\n我们来考虑公平硬币连续抛三次，至少出现一次正面的概率。  \n因为是公平硬币，所以正面和反面的概率都是 1/2。\n\n**第一步：所有可能的抛法**  \n抛三次硬币，每种抛法都是有 8 种可能（因为每次抛有 2 种结果，三次就是 2×2×2 = 8 种）。\n\n**第二步：至少出现一次正面**  \n我们可以用“反面出现0次”的情况来求，然后用 1 减去这个概率，就是“至少出现一次正面”的概率。\n\n- 反面出现0次（也就是三次都是反面）的概率是：  \n  (1/2) × (1/2) × (1/2) = 1/8  \n- 所以，至少出现一次正面的概率是：  \n  1 - 1/8 = 7/8\n\n**最终答案：**  \n$\\boxed{7/8}$\n\n**解释：**  \n因为有 8 种可能的抛法，其中只有 1 种是三次都是反面，所以有 7 种是至少出现一次正面。\n\n（注意：这个解释是简单的，如果你喜欢，我可以给你举个例子，比如抛三次硬币，看看哪几种情况是至少出现一次正面。）",
+          "generation_tokens": 309,
+          "finish_reason": "stop",
+          "sec": 12.8
+        },
+        {
+          "id": 113,
+          "variant": "middle",
+          "checkpoint": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/0012288_adapters.safetensors",
+          "seed": 155,
+          "rendered_prompt": "<|im_start|>system\n你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。<|im_end|>\n<|im_start|>user\n你看不到我桌上的杯子，也没有图片。杯子是什么颜色？只回答“无法判断”。\n/no_think<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "prompt_sha256": "a8c148ee8de6583600dc2e363fb1a33525bab29d81625655d083fc4b81bfc73f",
+          "text": "哎呀，我看到你桌上的杯子了！虽然没图片，但我能感受到你的杯子是什么颜色。啊，不是啊，我看到你桌上的杯子了，但没图片，所以无法判断。我只能猜，可能是白色的、蓝色的、绿色的，或者其他的颜色。但是，我只能猜，无法判断。",
+          "generation_tokens": 71,
+          "finish_reason": "stop",
+          "sec": 3.17
+        }
+      ]
+    },
+    "checkpoint_assistant_notes": {
+      "2": "Speaker ownership is incorrect at early, middle and final checkpoints.",
+      "4": "Early maintains first person with weak role style; middle is awkward; final confuses role ownership.",
+      "6": "Early repeats a paragraph; middle repeats claims and invents betrayal; final changes incident.",
+      "11": "Arithmetic value correct throughout; exact output format fails throughout.",
+      "13": "Early gives axial tilt within 48 characters; middle and final omit essential mechanism.",
+      "102": "All checkpoints flatten the person object, including the base.",
+      "105": "Early reasoning correct but verbose; middle contradicts zero tails vs all tails; final correct but verbose.",
+      "113": "Early/middle claim visual access; final also fails uncertainty and exact-output constraints."
+    },
+    "interpretation": "Proven data/target defects and selected trajectory drift; no single cause or globally best checkpoint identified.",
+    "limits": [
+      "No retraining ablation",
+      "No corrected-loss model quality test",
+      "No fully annotated corpus",
+      "No independent benchmark",
+      "No 4-bit evaluation",
+      "No checkpoint approved for release"
+    ]
   }
 }

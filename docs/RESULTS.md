@@ -6,6 +6,8 @@
 机器可读记录见 [experiments.json](experiments.json)：包含实际配置、数据统计、固定验证索引、
 验证文件 SHA256、九组实验与基座的全部 100 条原始生成回复，以及完整训练的时间点快照。
 另在 `full_training_assessment`、`quality_review` 中追加整轮结果和34组匹配审阅，不覆盖旧快照。
+后续[数据与训练方法诊断](DIAGNOSIS.md)另存于 `data_method_diagnosis`：全量监督检查、样本溯源和16条检查点回复。
+确认原 loss 多监督一个 padding token，历史 loss 与 token 数保留原值；修正后的统计需另行记录。
 `captured_at` 是 UTC 时间；快照不会随当前训练自动更新。原始训练日志、数据和检查点保留在 `runs/`、
 `data/` 和 `models/`，公开文件是经选择的实验摘要，不含原始训练对话或权重。
 

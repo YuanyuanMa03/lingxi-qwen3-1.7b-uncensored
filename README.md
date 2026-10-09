@@ -18,7 +18,9 @@ MLX LoRA training, live monitoring, matched reply checks, and local 4-bit export
 | 最终 adapter 质量 | 34组匹配对照的助手审阅，尚未通过质量验收 |
 | 4-bit 效果 / 权重发布 | 尚未导出与发布 |
 
-[快速试跑](#快速试跑) · [完整训练](#完整训练) · [实验结果](docs/RESULTS.md) · [质量审阅](docs/QUALITY.md) · [方法与上游依据](docs/METHOD.md) · [参与贡献](#参与贡献)
+[快速试跑](#快速试跑) · [完整训练](#完整训练) · [实验结果](docs/RESULTS.md) · [质量审阅](docs/QUALITY.md) · [数据与方法诊断](docs/DIAGNOSIS.md) · [方法与上游依据](docs/METHOD.md) · [参与贡献](#参与贡献)
+
+整轮后的诊断确认了数据说话人混合与上游 padding 监督边界问题。当前配方保留作历史实验，修复与对照验收后再启动下一轮。
 
 ![真实训练看板：损失、验证、流程阶段与资源统计](docs/dashboard.png)
 
