@@ -12,12 +12,13 @@ MLX LoRA training, live monitoring, matched reply checks, and local 4-bit export
 
 | 项目状态 | 证据范围 |
 | --- | --- |
-| Apple Silicon 运行 | Mac mini · M4 · 16 GB，完整训练正在进行 |
+| Apple Silicon 运行 | Mac mini · M4 · 16 GB，整轮训练已完成，约6小时43分钟 |
 | 参数实验 | 九组候选；记录配置、原始回复与失败案例 |
 | 软件回归 | 临时微型模型的训练、续载、实际量化导出与看板页面 |
-| 完整模型质量 / 4-bit 效果 | 待完成评测，尚未发布权重 |
+| 最终 adapter 质量 | 34组匹配对照的助手审阅，尚未通过质量验收 |
+| 4-bit 效果 / 权重发布 | 尚未导出与发布 |
 
-[快速试跑](#快速试跑) · [完整训练](#完整训练) · [实验结果](docs/RESULTS.md) · [方法与上游依据](docs/METHOD.md) · [参与贡献](#参与贡献)
+[快速试跑](#快速试跑) · [完整训练](#完整训练) · [实验结果](docs/RESULTS.md) · [质量审阅](docs/QUALITY.md) · [方法与上游依据](docs/METHOD.md) · [参与贡献](#参与贡献)
 
 ![真实训练看板：损失、验证、流程阶段与资源统计](docs/dashboard.png)
 
