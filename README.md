@@ -54,18 +54,35 @@ ChatML 来源规模较大，下载前检查可用磁盘。已有资源可放入�
 ## 训练与看板
 
 ```bash
-python -m lingxi.prepare
-python -m lingxi.train
+python -m lingxi.prepare --out data/processed-qwen3
+python -m lingxi.tune --full --data data/processed-qwen3 \
+  --out runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit \
+  --learning-rate 1e-6 --lora-rank 8 --lora-scale 4 \
+  --grad-accumulation-steps 16 --cosine-schedule
 python -m lingxi.dashboard
 ```
 
 打开 `http://127.0.0.1:8765`。默认运行目录为 `runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/`。
-预处理保留 system prompt，添加 `/no_think`，使用基座聊天模板过滤过长或目标 token 不足的样本，
-精确去重后固定 seed 划分。已有划分拒绝覆盖；新的预处理使用 `--out data/processed-v2`。
+预处理保留 system prompt，剔除不合法轮次，显式添加 `/no_think` 与空 think 回复前缀，
+使用基座聊天模板过滤过长或目标 token 不足的样本，
+精确去重后固定 seed 划分。已有划分拒绝覆盖；重新预处理时指定新的 `--out` 目录。
 精确去重不等于按人物或近似文本隔离，验证集只是同分布验证。
 
-默认末 16 层、rank 8 / scale 20、batch 1、累积 4、长度 1536、lr 1e-4，开启梯度检查点。
-这些是起始配置，先用 `--iters` 做短程检查，再依据本机内存调整。
+当前选择末 16 层、rank 8 / scale 4、batch 1、累积 16、长度 1536、lr 1e-6，开启梯度检查点。
+上面的完整流程训练一轮，使用 5% warmup 与 cosine，之后全量验证、检查回复并本地导出。
+明显循环或基础诊断失败时暂停导出；量化后也重新检查，不上传 HF。
+这是本次对照中的稳定候选，角色表达与独立能力仍需评测。新机器先通过 `lingxi.train --iters N`
+做短程资源检查，N 对齐梯度累积倍数。
+用固定 128 条验证记录和同样的 10 道回复题对照学习率与 scale：
+
+```bash
+python -m lingxi.tune --data data/processed-qwen3 --out runs/qwen3-tune-01
+```
+
+每组从基座重新开始，输出各自的配置、指标和原始回复。先检查循环、事实与指令遵循，
+再比较验证 loss；候选中胜出的配置不代表全局最佳。完整训练预算对齐梯度累积倍数，
+`--lora-rank`、`--lora-scale` 可指定低秩参数，`--cosine-schedule --warmup-updates N`
+启用调度，N 按参数更新计数。
 每次训练保存配置快照、数据统计与 `metrics.jsonl`。输出目录必须不存在或为空。
 续训从旧检查点加载权重，写入新的 `--out`，保留旧目录中的全部产物：
 
@@ -109,7 +126,7 @@ python -m lingxi.publish
 | 来源 | 数据卡许可 / 使用方式 |
 | --- | --- |
 | [Qwen/Qwen3-1.7B](https://huggingface.co/Qwen/Qwen3-1.7B) | Apache-2.0，基座 |
-| [unified-uncensored-qwen-chatml-sft](https://huggingface.co/datasets/usamakenway/unified-uncensored-qwen-chatml-sft) | 混合许可；按行筛选 `source_license=apache-2.0`，选取 Dolphin / OpenHermes / Airoboros |
+| [unified-uncensored-qwen-chatml-sft](https://huggingface.co/datasets/usamakenway/unified-uncensored-qwen-chatml-sft) | 混合许可；默认仅取 Apache-2.0 的 Dolphin，OpenHermes / Airoboros 配额为 0 |
 | [roleplay-zh-sharegpt-gpt4-data](https://huggingface.co/datasets/shibing624/roleplay-zh-sharegpt-gpt4-data) | 数据卡 Apache-2.0，另有上游来源说明 |
 | [deep-emotional-support-zh](https://huggingface.co/datasets/AngelWarmSmile123/deep-emotional-support-zh) | 数据卡 CC-BY-NC-SA-4.0 |
 
@@ -135,4 +152,4 @@ python -m unittest discover -s tests -v
 - 浏览器显示全部保留数据来源与正确配比。
 
 这些检查验证软件行为，不证明完整 1.7B 模型的量化质量、泛化能力或训练资源需求。
-本轮未启动完整训练，也未上传 HF 权重。
+回归测试使用临时微型模型；完整训练与 HF 上传分别执行。

@@ -40,7 +40,7 @@ class WorkflowTests(unittest.TestCase):
             timeout=120,
         )
 
-    def tiny_run(self):
+    def tiny_run(self, *options):
         import mlx.core as mx
         from mlx_lm.models.qwen3 import Model, ModelArgs
         from mlx_lm.utils import quantize_model, save_model
@@ -128,9 +128,62 @@ class WorkflowTests(unittest.TestCase):
             "--max-seq-length",
             32,
             "--no-grad-checkpoint",
+            *options,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         return base, data, run
+
+    def test_training_records_the_requested_lora_configuration(self):
+        _, _, run = self.tiny_run("--lora-rank", 4, "--lora-scale", 4)
+        config = json.loads((run / "adapters/adapter_config.json").read_text())
+        self.assertEqual(config["lora_parameters"], {"rank": 4, "scale": 4.0, "dropout": 0.0})
+
+    def test_learning_rate_schedule_uses_optimizer_updates(self):
+        _, _, run = self.tiny_run(
+            "--learning-rate",
+            1e-4,
+            "--iters",
+            8,
+            "--grad-accumulation-steps",
+            2,
+            "--warmup-updates",
+            1,
+            "--cosine-schedule",
+        )
+        config = json.loads((run / "run_config.json").read_text())
+        self.assertEqual(
+            config["lr_schedule"],
+            {
+                "name": "cosine_decay",
+                "arguments": [1e-4, 3, 1e-5],
+                "warmup": 1,
+                "warmup_init": 0.0,
+            },
+        )
+
+    def test_training_rejects_consecutive_assistant_turns_before_loading_weights(self):
+        data = self.root / "bad-data"
+        data.mkdir()
+        row = {
+            "messages": [
+                {"role": "user", "content": "hi"},
+                {"role": "assistant", "content": "yes"},
+                {"role": "assistant", "content": "another answer"},
+            ]
+        }
+        for split in ("train", "valid"):
+            (data / f"{split}.jsonl").write_text(json.dumps(row) + "\n")
+        result = self.cli(
+            "train",
+            "--model",
+            self.root / "missing-model",
+            "--data",
+            data,
+            "--out",
+            self.root / "bad-run",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("alternate user and assistant", result.stderr)
 
     def test_quantized_training_exports_real_four_bit_weights(self):
         from mlx_lm import load
@@ -174,6 +227,9 @@ class WorkflowTests(unittest.TestCase):
         result = self.cli("publish", "--run", run, "--out", out, "--dry-run")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Best recorded validation loss: 1", result.stdout)
+        self.assertIn("sampler=make_sampler(temp=0.7, top_p=0.8, top_k=20)", result.stdout)
+        self.assertIn("/no_think", result.stdout)
+        self.assertIn("Learning rate schedule: `null`", result.stdout)
         self.assertEqual(files(run), before)
         self.assertFalse(out.exists())
 

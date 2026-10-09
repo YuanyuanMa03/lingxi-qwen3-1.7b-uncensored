@@ -44,13 +44,15 @@ Uncensored describes the intended behavior; refusal reduction and general capabi
 
 ```python
 from mlx_lm import load, generate
+from mlx_lm.sample_utils import make_sampler
 
 model, tokenizer = load({repo!r})
 messages = [{{"role": "system", "content": {PERSONA!r}}},
-            {{"role": "user", "content": "我失恋了，怎么走出来"}}]
+            {{"role": "user", "content": "我失恋了，怎么走出来\\n/no_think"}}]
 prompt = tokenizer.apply_chat_template(messages, tokenize=False,
                                       add_generation_prompt=True, enable_thinking=False)
-print(generate(model, tokenizer, prompt=prompt, max_tokens=512))
+print(generate(model, tokenizer, prompt=prompt, max_tokens=512,
+               sampler=make_sampler(temp=0.7, top_p=0.8, top_k=20)))
 ```
 
 ## Training
@@ -59,6 +61,7 @@ print(generate(model, tokenizer, prompt=prompt, max_tokens=512))
 - LoRA: `{json.dumps(config["lora_parameters"])}`, {config["num_layers"]} layers
 - Batch: {config["batch_size"]}, gradient accumulation: {config["grad_accumulation_steps"]}
 - Learning rate: {config["learning_rate"]}, maximum sequence length: {config["max_seq_length"]}
+- Learning rate schedule: `{json.dumps(config.get("lr_schedule"))}`
 - Requested iterations for this run: {config["iters"]}
 - Last reported training loss: {train[-1]["train_loss"] if train else "not recorded"}
 - Best recorded validation loss: {min(val) if val else "not recorded"}

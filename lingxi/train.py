@@ -12,7 +12,7 @@ from mlx_lm.lora import CONFIG_DEFAULTS, train_model
 from mlx_lm.tuner.callbacks import TrainingCallback
 from mlx_lm.tuner.datasets import load_dataset
 
-from .persona import NAME
+from .persona import NAME, qwen_messages
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -43,13 +43,17 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.set_defaults(**CONFIG_DEFAULTS)
     parser.add_argument("--model", default="models/Qwen3-1.7B")
-    parser.add_argument("--data", default="data/processed")
+    parser.add_argument("--data", default="data/processed-qwen3")
     parser.add_argument("--out", type=Path, default=Path("runs") / NAME)
     parser.add_argument("--iters", type=int, default=4000)
     parser.add_argument("--batch-size", type=int, default=1)
-    parser.add_argument("--grad-accumulation-steps", type=int, default=4)
-    parser.add_argument("--learning-rate", type=float, default=1e-4)
+    parser.add_argument("--grad-accumulation-steps", type=int, default=16)
+    parser.add_argument("--learning-rate", type=float, default=1e-6)
+    parser.add_argument("--warmup-updates", type=int, default=0)
+    parser.add_argument("--cosine-schedule", action="store_true")
     parser.add_argument("--num-layers", type=int, default=16)
+    parser.add_argument("--lora-rank", type=int, default=8)
+    parser.add_argument("--lora-scale", type=float, default=4.0)
     parser.add_argument("--max-seq-length", type=int, default=1536)
     parser.add_argument("--steps-per-report", type=int, default=10)
     parser.add_argument("--steps-per-eval", type=int, default=400)
@@ -59,6 +63,25 @@ def parse_args():
     parser.add_argument("--grad-checkpoint", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--resume", "--resume-adapter-file", dest="resume_adapter_file")
     args = parser.parse_args()
+    updates = args.iters // args.grad_accumulation_steps
+    if args.cosine_schedule:
+        if not 0 <= args.warmup_updates < updates:
+            parser.error("warmup updates must be smaller than total optimizer updates")
+        args.lr_schedule = {
+            "name": "cosine_decay",
+            "arguments": [
+                args.learning_rate,
+                updates - args.warmup_updates,
+                args.learning_rate / 10,
+            ],
+            "warmup": args.warmup_updates,
+            "warmup_init": 0.0,
+        }
+    elif args.warmup_updates:
+        parser.error("--warmup-updates requires --cosine-schedule")
+    del args.warmup_updates, args.cosine_schedule
+    args.lora_parameters = {"rank": args.lora_rank, "scale": args.lora_scale, "dropout": 0.0}
+    del args.lora_rank, args.lora_scale
     args.project = NAME
     args.train, args.mask_prompt = True, True
     args.adapter_path = str(args.out / "adapters")
@@ -70,6 +93,13 @@ def parse_args():
 def main():
     os.chdir(ROOT)
     args = parse_args()
+    for split in ("train", "valid"):
+        with (Path(args.data) / f"{split}.jsonl").open() as f:
+            for line in f:
+                messages = json.loads(line)["messages"]
+                qwen_messages(messages)
+                if messages[-1]["role"] != "assistant":
+                    raise ValueError("training dialogue must end with assistant")
     out = args.out
     del args.out
     out.mkdir(parents=True, exist_ok=True)

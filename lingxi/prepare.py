@@ -11,11 +11,11 @@ from pathlib import Path
 import pyarrow.parquet as pq
 from transformers import AutoTokenizer
 
-from .persona import NAME
+from .persona import NAME, qwen_messages
 
 REPO = Path(__file__).resolve().parents[1]
 DATA = REPO / "data"
-OUT = Path("data/processed")
+OUT = Path("data/processed-qwen3")
 
 IM_START = re.compile(r"<\|im_start\|>(\w+)\s*\n(.*?)<\|im_end\|>", re.S)
 
@@ -129,8 +129,8 @@ def main():
     ap.add_argument("--out", type=Path, default=OUT)
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--dolphin", type=int, default=14000)
-    ap.add_argument("--openhermes", type=int, default=4000)
-    ap.add_argument("--airoboros", type=int, default=2000)
+    ap.add_argument("--openhermes", type=int, default=0)
+    ap.add_argument("--airoboros", type=int, default=0)
     ap.add_argument("--max-chars", type=int, default=6000)
     ap.add_argument("--valid-frac", type=float, default=0.02)
     ap.add_argument(
@@ -157,14 +157,15 @@ def main():
     tok = AutoTokenizer.from_pretrained(args.model)
     # Keep answer tokens after prompt masking and sequence truncation.
 
-    kept, dropped, duplicates = [], 0, 0
+    kept, dropped, duplicates, invalid_turns = [], 0, 0, 0
     seen = set()
     for r in all_rows:
-        msgs = r["messages"]
-        # Qwen recommends /no_think for non-CoT SFT while preserving reasoning behavior.
-        user = next(m for m in reversed(msgs) if m["role"] == "user")
-        if "/no_think" not in user["content"]:
-            user["content"] += "\n/no_think"
+        try:
+            msgs = qwen_messages(r["messages"])
+        except ValueError:
+            invalid_turns += 1
+            continue
+        r["messages"] = msgs
         full = tok.apply_chat_template(msgs, add_generation_prompt=False, return_dict=False)
         prompt = tok.apply_chat_template(msgs[:-1], add_generation_prompt=True, return_dict=False)
         if (
@@ -205,6 +206,8 @@ def main():
         "seed": args.seed,
         "max_tokens": args.max_tokens,
         "duplicates_removed": duplicates,
+        "invalid_turns_removed": invalid_turns,
+        "format": "qwen3-no-think",
         "before_filter": {**s1, **s2, **s3},
         "total": len(all_rows),
         "train": len(train),

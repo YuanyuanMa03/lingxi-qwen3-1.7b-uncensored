@@ -23,7 +23,7 @@ def read_json(path):
 
 def load_payload(run_dir, data_dir=None):
     config = read_json(run_dir / "run_config.json")
-    stats_path = Path(data_dir or config.get("data", "data/processed"))
+    stats_path = Path(data_dir or config.get("data", "data/processed-qwen3"))
     if not stats_path.is_absolute():
         stats_path = ROOT / stats_path
     snapshot = run_dir / "data_stats.json"

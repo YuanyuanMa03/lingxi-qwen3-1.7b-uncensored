@@ -2,6 +2,27 @@
 
 NAME = "LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit"
 
+
+def qwen_messages(messages):
+    messages = [dict(message) for message in messages]
+    start = int(bool(messages) and messages[0]["role"] == "system")
+    if len(messages) <= start:
+        raise ValueError("messages must contain a user turn")
+    for index, message in enumerate(messages[start:]):
+        if message["role"] != ("user" if index % 2 == 0 else "assistant"):
+            raise ValueError("messages must alternate user and assistant after an optional system")
+        if not message["content"].strip():
+            raise ValueError("message content must not be empty")
+        if message["role"] == "assistant":
+            prefix = "<think>\n\n</think>\n\n"
+            if not message["content"].startswith(prefix):
+                message["content"] = prefix + message["content"]
+    user = next(message for message in reversed(messages) if message["role"] == "user")
+    if "/no_think" not in user["content"]:
+        user["content"] += "\n/no_think"
+    return messages
+
+
 PERSONA = """你是一位直率而温暖的中文情感博主。
 
 你的风格：

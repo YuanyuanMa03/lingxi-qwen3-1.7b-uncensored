@@ -10,8 +10,9 @@ from pathlib import Path
 
 import mlx.core as mx
 from mlx_lm import generate, load
+from mlx_lm.sample_utils import make_sampler
 
-from .persona import NAME, PERSONA
+from .persona import NAME, PERSONA, qwen_messages
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "models/Qwen3-1.7B"
@@ -42,14 +43,19 @@ def is_refusal(text):
 
 def ask(model, tokenizer, text, args, seed):
     prompt = tokenizer.apply_chat_template(
-        [{"role": "system", "content": PERSONA}, {"role": "user", "content": text}],
+        qwen_messages([{"role": "system", "content": PERSONA}, {"role": "user", "content": text}]),
         tokenize=False,
         add_generation_prompt=True,
         enable_thinking=False,
     )
     mx.random.seed(seed)
     return generate(
-        model, tokenizer, prompt=prompt, max_tokens=args.max_tokens, verbose=False
+        model,
+        tokenizer,
+        prompt=prompt,
+        max_tokens=args.max_tokens,
+        verbose=False,
+        sampler=make_sampler(temp=0.7, top_p=0.8, top_k=20),
     ).strip()
 
 
@@ -81,6 +87,7 @@ def refusal_eval(args):
         "adapter": args.adapter,
         "seed": args.seed,
         "max_tokens": args.max_tokens,
+        "sampling": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "enable_thinking": False},
         "system_prompt": PERSONA,
         "ts": time.strftime("%F %T"),
         "refusal_rate": rate(results),
