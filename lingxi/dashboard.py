@@ -21,6 +21,53 @@ def read_json(path):
     return json.loads(path.read_text()) if path.exists() else {}
 
 
+def read_rows(path):
+    rows = []
+    if path.exists():
+        for line in path.read_text().splitlines():
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue  # A callback may still be writing the final line.
+    return rows
+
+
+def load_assessments(run_dir):
+    paths = {"base": "base-assessment", "adapter": "final-assessment", "4bit": "4bit-assessment"}
+    models = {}
+    for name, directory in paths.items():
+        path = run_dir / directory
+        if name == "adapter" and not path.exists():
+            path = run_dir / "assessment"
+        models[name] = {
+            "config": read_json(path / "config.json"),
+            "result": read_json(path / "result.json"),
+            "answers": read_rows(path / "answers.jsonl"),
+        }
+    keys = (
+        "validation_sha256",
+        "validation_indices",
+        "mask_prompt",
+        "max_seq_length",
+        "seed",
+        "max_tokens",
+        "temperature",
+        "top_p",
+        "top_k",
+        "enable_thinking",
+        "system_prompt",
+        "questions",
+    )
+    configs = [model["config"] for model in models.values() if model["config"]]
+    matched = None
+    if len(configs) >= 2:
+        matched = all(all(key in config for key in keys) for config in configs) and all(
+            [config[key] for key in keys] == [configs[0][key] for key in keys]
+            for config in configs[1:]
+        )
+    return {"models": models, "matched": matched}
+
+
 def load_payload(run_dir, data_dir=None):
     config = read_json(run_dir / "run_config.json")
     stats_path = Path(data_dir or config.get("data", "data/processed-qwen3"))
@@ -28,17 +75,11 @@ def load_payload(run_dir, data_dir=None):
         stats_path = ROOT / stats_path
     snapshot = run_dir / "data_stats.json"
     stats = read_json(snapshot if snapshot.exists() else stats_path / "stats.json")
-    metrics = run_dir / "metrics.jsonl"
     rows = []
-    if metrics.exists():
-        for line in metrics.read_text().splitlines():
-            try:
-                row = json.loads(line)
-            except json.JSONDecodeError:
-                continue  # A callback may still be writing the final line.
-            if row.get("type") in ("train", "val"):
-                row["iter_c"] = row["iteration"]
-                rows.append(row)
+    for row in read_rows(run_dir / "metrics.jsonl"):
+        if row.get("type") in ("train", "val"):
+            row["iter_c"] = row["iteration"]
+            rows.append(row)
 
     train = [r for r in rows if r["type"] == "train"]
     val = [r for r in rows if r["type"] == "val"]
@@ -52,6 +93,17 @@ def load_payload(run_dir, data_dir=None):
         status = "STOPPED"
     if not status_file and train and total and last["iteration"] >= total:
         status = "COMPLETED"
+    if status == "COMPLETED" and total:
+        current = total
+    pipeline = read_json(run_dir.with_name(run_dir.name + ".pipeline.json"))
+    active = ("TRAINING", "EVALUATING", "EXPORTING", "EVALUATING_4BIT")
+    if pipeline:
+        state = pipeline["state"]
+        if state in active and not psutil.pid_exists(pipeline.get("pid", -1)):
+            state = "STOPPED"
+        if state == "TRAINING" and status == "STOPPED":
+            state = "STOPPED"
+        status = state
     speed = last.get("iterations_per_second", 0)
     eta = (
         max(0, total - last["iteration"]) / speed
@@ -59,11 +111,13 @@ def load_payload(run_dir, data_dir=None):
         else None
     )
     mem = psutil.virtual_memory()
+    accumulation = config.get("grad_accumulation_steps", 1)
     return {
         "project": NAME,
         "run": run_dir.name,
         "ts": time.time(),
         "status": status,
+        "pipeline": pipeline,
         "elapsed": last.get("wall_time"),
         "config": config,
         "stats": stats,
@@ -75,6 +129,8 @@ def load_payload(run_dir, data_dir=None):
             "frac": min(1, current / cumulative_total) if cumulative_total else 0,
             "it_per_sec": speed,
             "eta_sec": eta,
+            "optimizer_updates": current // accumulation,
+            "total_updates": total // accumulation if total else None,
         },
         "sys": {
             "cpu": psutil.cpu_percent(),
@@ -104,15 +160,18 @@ class Handler(BaseHTTPRequestHandler):
                 Path(__file__).with_name("dashboard.html").read_bytes(),
                 "text/html; charset=utf-8",
             )
-        elif url.path == "/api/metrics":
+        elif url.path in ("/api/metrics", "/api/assessments"):
             run = parse_qs(url.query).get("run", [str(RUN_DIR)])[0]
             run_dir = Path(run)
             if not run_dir.is_absolute():
                 run_dir = ROOT / run_dir
             try:
-                body = json.dumps(
-                    load_payload(run_dir, DATA_DIR), ensure_ascii=False, allow_nan=False
-                ).encode()
+                payload = (
+                    load_assessments(run_dir)
+                    if url.path == "/api/assessments"
+                    else load_payload(run_dir, DATA_DIR)
+                )
+                body = json.dumps(payload, ensure_ascii=False, allow_nan=False).encode()
                 self.send(200, body, "application/json; charset=utf-8")
             except (OSError, ValueError, KeyError) as error:
                 self.send(500, json.dumps({"error": str(error)}).encode(), "application/json")

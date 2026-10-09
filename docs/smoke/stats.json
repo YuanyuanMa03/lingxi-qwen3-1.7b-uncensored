@@ -1,0 +1,16 @@
+{
+  "project": "LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit",
+  "total": 16,
+  "train": 12,
+  "valid": 4,
+  "by_source": {
+    "lingxi-smoke": 16
+  },
+  "license": "Apache-2.0",
+  "source": "Original synthetic examples authored for this repository; no external dataset",
+  "format": "qwen3-no-think",
+  "split": "first 12 train; last 4 valid; no shuffle",
+  "duplicates_removed": 0,
+  "invalid_turns_removed": 0,
+  "scope": "Software smoke check only; not training-quality evidence"
+}

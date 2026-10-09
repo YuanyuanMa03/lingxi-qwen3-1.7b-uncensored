@@ -2,6 +2,7 @@
 
 import hashlib
 from dataclasses import asdict
+from contextlib import contextmanager
 import json
 import os
 import socket
@@ -138,6 +139,13 @@ class WorkflowTests(unittest.TestCase):
         config = json.loads((run / "adapters/adapter_config.json").read_text())
         self.assertEqual(config["lora_parameters"], {"rank": 4, "scale": 4.0, "dropout": 0.0})
 
+    def test_bundled_smoke_data_trains_and_saves_an_adapter(self):
+        _, _, run = self.tiny_run("--data", ROOT / "docs/smoke")
+        self.assertTrue((run / "adapters/adapters.safetensors").stat().st_size > 0)
+        stats = json.loads((run / "data_stats.json").read_text())
+        self.assertEqual((stats["train"], stats["valid"]), (12, 4))
+        self.assertEqual(stats["license"], "Apache-2.0")
+
     def test_learning_rate_schedule_uses_optimizer_updates(self):
         _, _, run = self.tiny_run(
             "--learning-rate",
@@ -233,19 +241,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(files(run), before)
         self.assertFalse(out.exists())
 
-    def test_dashboard_displays_every_retained_source_and_its_share(self):
-        from playwright.sync_api import sync_playwright
-
-        run = self.root / "run"
-        run.mkdir()
-        sources = {
-            "chatml/dolphin": 20,
-            "chatml/openhermes": 20,
-            "chatml/airoboros": 20,
-            "roleplay-zh": 20,
-            "emotional-zh": 20,
-        }
-        (run / "data_stats.json").write_text(json.dumps({"total": 100, "by_source": sources}))
+    @contextmanager
+    def dashboard(self, run):
         with socket.socket() as sock:
             sock.bind(("127.0.0.1", 0))
             port = sock.getsockname()[1]
@@ -262,7 +259,7 @@ class WorkflowTests(unittest.TestCase):
             for _ in range(100):
                 try:
                     with urlopen(url + "/api/metrics", timeout=1) as response:
-                        self.assertEqual(json.load(response)["stats"]["by_source"], sources)
+                        self.assertEqual(response.status, 200)
                     break
                 except OSError:
                     if server.poll() is not None:
@@ -270,6 +267,27 @@ class WorkflowTests(unittest.TestCase):
                     time.sleep(0.05)
             else:
                 self.fail("dashboard did not start")
+            yield url
+        finally:
+            server.terminate()
+            server.communicate(timeout=10)
+
+    def test_dashboard_displays_every_retained_source_and_its_share(self):
+        from playwright.sync_api import sync_playwright
+
+        run = self.root / "run"
+        run.mkdir()
+        sources = {
+            "chatml/dolphin": 20,
+            "chatml/openhermes": 20,
+            "chatml/airoboros": 20,
+            "roleplay-zh": 20,
+            "emotional-zh": 20,
+        }
+        (run / "data_stats.json").write_text(json.dumps({"total": 100, "by_source": sources}))
+        with self.dashboard(run) as url:
+            with urlopen(url + "/api/metrics") as response:
+                self.assertEqual(json.load(response)["stats"]["by_source"], sources)
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch()
                 try:
@@ -290,9 +308,135 @@ class WorkflowTests(unittest.TestCase):
                     self.assertEqual(errors, [])
                 finally:
                     browser.close()
-        finally:
-            server.terminate()
-            server.communicate(timeout=10)
+
+    def test_dashboard_shows_pipeline_stages_and_optimizer_updates(self):
+        from playwright.sync_api import sync_playwright
+
+        run = self.root / "lr1e-06.model"
+        run.mkdir()
+        (run / "run_config.json").write_text(
+            json.dumps({"iters": 128, "grad_accumulation_steps": 16})
+        )
+        (run / "status.json").write_text(json.dumps({"state": "COMPLETED"}))
+        (run / "metrics.jsonl").write_text(
+            json.dumps(
+                {
+                    "type": "train",
+                    "iteration": 100,
+                    "train_loss": 2,
+                    "iterations_per_second": 2,
+                    "peak_memory": 5.5,
+                }
+            )
+            + "\n"
+        )
+        pipeline = run.with_name(run.name + ".pipeline.json")
+        pipeline.write_text(json.dumps({"state": "EVALUATING", "pid": os.getpid()}))
+        with self.dashboard(run) as url, sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(url)
+                for state in (
+                    "EVALUATING",
+                    "EXPORTING",
+                    "EVALUATING_4BIT",
+                    "QUALITY_REVIEW_REQUIRED",
+                    "COMPLETED",
+                ):
+                    pipeline.write_text(json.dumps({"state": state, "pid": os.getpid()}))
+                    with urlopen(url + "/api/metrics") as response:
+                        payload = json.load(response)
+                    self.assertEqual(payload["status"], state)
+                    self.assertEqual(payload["progress"]["optimizer_updates"], 8)
+                    self.assertEqual(payload["progress"]["total_updates"], 8)
+                    self.assertIsNone(payload["progress"]["eta_sec"])
+                    page.wait_for_function(
+                        "state => document.querySelector('#statusText').textContent.includes(state)",
+                        arg=state,
+                    )
+                self.assertIn("8 / 8", page.locator("#updates").inner_text())
+                page.get_by_role("button", name="双语 / 中 / EN").click()
+                page.get_by_role("button", name="双语 / 中 / EN").click()
+                self.assertIn("MLX peak", page.locator("#kpis").inner_text())
+                self.assertNotIn("当前损失", page.locator("#kpis").inner_text())
+                (run / "status.json").write_text(
+                    json.dumps({"state": "TRAINING", "pid": os.getpid()})
+                )
+                pipeline.write_text(json.dumps({"state": "TRAINING", "pid": os.getpid()}))
+                with urlopen(url + "/api/metrics") as response:
+                    progress = json.load(response)["progress"]
+                self.assertEqual(progress["optimizer_updates"], 6)
+                self.assertEqual(progress["total_updates"], 8)
+                self.assertEqual(progress["eta_sec"], 14)
+                (run / "status.json").write_text(json.dumps({"state": "STOPPED"}))
+                with urlopen(url + "/api/metrics") as response:
+                    self.assertEqual(json.load(response)["status"], "STOPPED")
+                pipeline.write_text(json.dumps({"state": "EVALUATING", "pid": -1}))
+                with urlopen(url + "/api/metrics") as response:
+                    self.assertEqual(json.load(response)["status"], "STOPPED")
+            finally:
+                browser.close()
+
+    def test_dashboard_compares_raw_replies_and_flags_mismatched_settings(self):
+        from playwright.sync_api import sync_playwright
+
+        run = self.root / "comparison"
+        run.mkdir()
+        config = {
+            "seed": 42,
+            "max_tokens": 384,
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "top_k": 20,
+            "enable_thinking": False,
+            "system_prompt": "same persona",
+            "questions": [[11, "17 × 23?"]],
+            "validation_sha256": "same split",
+            "validation_indices": [0],
+            "mask_prompt": True,
+            "max_seq_length": 1536,
+        }
+        for name, text in (("base-assessment", "<b>391</b>"), ("final-assessment", "391")):
+            assessment = run / name
+            assessment.mkdir()
+            (assessment / "config.json").write_text(json.dumps(config))
+            (assessment / "result.json").write_text(json.dumps({"validation_loss": 2.5}))
+            (assessment / "answers.jsonl").write_text(
+                json.dumps(
+                    {
+                        "id": 11,
+                        "prompt": "17 × 23?",
+                        "text": text,
+                    }
+                )
+                + '\n{"id":12'
+            )
+        with self.dashboard(run) as url, sync_playwright() as playwright:
+            with urlopen(url + "/api/assessments") as response:
+                payload = json.load(response)
+            self.assertTrue(payload["matched"])
+            self.assertEqual(payload["models"]["base"]["answers"][0]["text"], "<b>391</b>")
+            self.assertEqual(payload["models"]["4bit"]["answers"], [])
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(url)
+                page.wait_for_function(
+                    "document.querySelector('#reply-base').textContent.includes('<b>391</b>')"
+                )
+                self.assertEqual(page.locator("#reply-base b").count(), 0)
+                self.assertEqual(page.locator("#reply-adapter").inner_text(), "391")
+                config["max_tokens"] = 128
+                (run / "final-assessment/config.json").write_text(json.dumps(config))
+                with urlopen(url + "/api/assessments") as response:
+                    self.assertFalse(json.load(response)["matched"])
+                page.reload()
+                page.wait_for_function(
+                    "document.querySelector('#comparisonHint').textContent.includes('不一致')"
+                )
+            finally:
+                browser.close()
 
     def test_resume_in_a_new_directory_preserves_the_original_run(self):
         base, data, original = self.tiny_run()
