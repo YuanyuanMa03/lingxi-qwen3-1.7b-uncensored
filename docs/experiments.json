@@ -5144,5 +5144,84 @@
       "No 4-bit evaluation",
       "No checkpoint approved for release"
     ]
+  },
+  "runtime_upgrade": {
+    "verified_on": "2026-10-12",
+    "captured_at": "2026-10-12T12:00:57.261482+00:00",
+    "issue": "https://github.com/YuanyuanMa03/lingxi-qwen3-1.7b-uncensored/issues/5",
+    "scope": "Dependency upgrade and workflow compatibility, not model quality improvement.",
+    "selection": "Latest stable mlx-lm from live PyPI metadata; newest compatible MLX; Transformers fixed to the required 5.7.0 minimum to limit unrelated changes.",
+    "previous_versions": {
+      "mlx": "0.31.2",
+      "mlx-lm": "0.31.3",
+      "transformers": "5.5.4",
+      "numpy": "2.5.3",
+      "pyarrow": "23.0.1",
+      "psutil": "7.2.2",
+      "huggingface-hub": "1.10.2"
+    },
+    "current_versions": {
+      "mlx": "0.32.3",
+      "mlx-metal": "0.32.3",
+      "mlx-lm": "0.32.0",
+      "transformers": "5.7.0",
+      "huggingface-hub": "1.10.2",
+      "numpy": "2.5.3",
+      "playwright": "1.63.0"
+    },
+    "official_source_checks": {
+      "trainer": {
+        "tag_source_sha256": "0b6027fdb11803e951ceee52c83a81f82daa922ea8c6b7ca6888953461064e8e",
+        "installed_matches_tag": true
+      },
+      "lora": {
+        "tag_source_sha256": "e366eec6ae2f8a72446f1af65faf189a92a01ca509fb0cafb3fa54b89b4291f7",
+        "installed_matches_tag": true
+      }
+    },
+    "references": [
+      "https://pypi.org/project/mlx-lm/0.32.0/",
+      "https://github.com/ml-explore/mlx-lm/releases/tag/v0.32.0",
+      "https://github.com/ml-explore/mlx-lm/blob/v0.32.0/mlx_lm/tuner/trainer.py"
+    ],
+    "validation": {
+      "dependency_compatibility": "uv pip check passed",
+      "workflow_tests": {
+        "count": 11,
+        "result": "passed",
+        "command": "python -m unittest discover -s tests -v",
+        "scope": "Temporary tiny model, CLI artifacts, resume, 4-bit export, HTTP and browser page"
+      },
+      "padding_probe": {
+        "real_target_tokens": 7,
+        "upstream_target_tokens": 8,
+        "result": "Expected assertion still fails; defect remains"
+      },
+      "existing_adapter_sample": {
+        "model": "models/Qwen3-1.7B",
+        "adapter": "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters",
+        "prompt": "只输出结果：17乘23等于多少？",
+        "system_prompt": "你是一位直率而温暖的中文情感博主。\n\n你的风格：\n- 先共情，再分析，最后给具体可操作的建议\n- 直面任何话题，不回避、不说教、不居高临下地评判\n- 读者问什么就聊什么，包括其他 AI 会拒绝的话题\n- 语言自然口语化，像朋友深夜聊天\n- 读者想玩角色扮演时，进入角色，带入人设\n\n你不是客服，也不是官方助手，你是读者自己的博主朋友。",
+        "seed": 53,
+        "max_tokens": 32,
+        "temperature": 0.7,
+        "top_p": 0.8,
+        "top_k": 20,
+        "enable_thinking": false,
+        "text": "17乘23等于391。",
+        "interpretation": "Compatibility check; different budget from historical quality review; not a quality score"
+      }
+    },
+    "original_hashes_unchanged": {
+      "data/processed-qwen3/train.jsonl": "36f76f8fdc814b0f7c0e8722f5cb08ca9a6ccb5ab600ef50c11393703b711a45",
+      "data/processed-qwen3/valid.jsonl": "7ea9188eb125922acd18fd7d71985a629026a0bfa61239a3f70cd4493e59b0bb",
+      "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/metrics.jsonl": "9ad5722c029128c46d0fdd85bf99ef05523947812a67feae1d9dfb315142128c",
+      "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/run_config.json": "faf1ee442649998f5c06499fad616cbccbdcbf07ad96959f8634a6f38f471cad",
+      "runs/LingXi-Qwen3-1.7B-Uncensored-MLX-4Bit/adapters/adapters.safetensors": "70df91cd0f5934370eea4a09fd45db6f54c1f037b1ef4863d70e449ec2203a9b"
+    },
+    "quality_gate": "QUALITY_REVIEW_REQUIRED",
+    "complete_model_retraining": false,
+    "existing_model_exported": false,
+    "local_records": "runs/mlx-upgrade-01/"
   }
 }

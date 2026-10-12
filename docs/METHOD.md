@@ -2,7 +2,8 @@
 
 ## 方法
 
-使用 MLX-LM 0.31.3 的 LoRA SFT：末 16 层、rank 8、scale 4，沿用上游可转换投影。
+当前使用 MLX-LM 0.32.0、MLX 0.32.3、Transformers 5.7.0，版本固定于 requirements.txt。
+LoRA SFT 使用末 16 层、rank 8、scale 4，沿用上游可转换投影。
 当前 Qwen3 包含 attention 的 q/k/v/o 和 MLP 的 gate/up/down 投影。
 MLX 的 scale 直接乘 adapter 输出，不能当作其他框架的 LoRA alpha。
 BF16 基座使用 LoRA；量化基座使用 QLoRA。先反量化合并，再导出 MLX 4-bit 权重。
@@ -41,9 +42,15 @@ top-k 20。对照实验记录用户标记、提示词、采样设置、seed 与�
 
 ## 参数对照
 
-2026-10-09 整轮后的[数据与训练方法诊断](DIAGNOSIS.md)确认当前上游 loss
+2026-10-09 整轮后的[数据与训练方法诊断](DIAGNOSIS.md)确认 MLX-LM 0.31.3 的 loss
 多监督一个 padding token，且来源中有说话人混合的目标。该历史 recipe 尚未修复；
 已有 loss 是原实现的统计。修正并完成数据对照前，不沿用整轮参数作为质量通过方案。
+
+2026-10-12 升级至 PyPI 最新正式版 0.32.0，并核对对应官方 tag 源码。
+上游要求 MLX >=0.32.2、Transformers >=5.7.0；本仓库分别固定到 0.32.3、5.7.0，
+其余运行依赖保持原版本。历史九组实验与整轮训练仍对应 0.31.3，不改写版本或指标。
+新版最小监督复现仍为真实 7 token、实际计数 8 token，padding 边界问题尚未修复。
+升级兼容性与模型质量分别验收；本次不启动完整训练或导出既有模型。
 
 `python -m lingxi.tune --out runs/qwen3-tune-01` 从同一基座分别训练 4 个候选：
 lr 为 1e-4 / 2e-5，MLX scale 为 20 / 4，固定 rank 8、最后 16 层、200 微批次、
@@ -85,11 +92,13 @@ lr 1e-6 的同预算结果为 3.098，未出现此前的明显角色循环，乘
 
 ## 上游依据
 
-- [MLX-LM v0.31.3](https://github.com/ml-explore/mlx-lm/releases/tag/v0.31.3)
-- [LoRA 训练与内存设置](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/LORA.md)
-- [训练入口](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/lora.py)
-- [LoRA 投影选择](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/tuner/utils.py)
-- [梯度累积、验证与 prompt mask](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/tuner/trainer.py)
+- [MLX-LM v0.32.0](https://github.com/ml-explore/mlx-lm/releases/tag/v0.32.0)
+- [PyPI 发布版本与依赖](https://pypi.org/project/mlx-lm/0.32.0/)
+- [LoRA 训练与内存设置](https://github.com/ml-explore/mlx-lm/blob/v0.32.0/mlx_lm/LORA.md)
+- [训练入口](https://github.com/ml-explore/mlx-lm/blob/v0.32.0/mlx_lm/lora.py)
+- [LoRA 投影选择](https://github.com/ml-explore/mlx-lm/blob/v0.32.0/mlx_lm/tuner/utils.py)
+- [梯度累积、验证与 prompt mask](https://github.com/ml-explore/mlx-lm/blob/v0.32.0/mlx_lm/tuner/trainer.py)
+- [历史实验版本 v0.31.3](https://github.com/ml-explore/mlx-lm/releases/tag/v0.31.3)
 - [Qwen3 推理与采样建议](https://huggingface.co/Qwen/Qwen3-1.7B)
 - [Qwen3 非思考模式微调](https://github.com/QwenLM/Qwen3/blob/main/docs/source/training/ms_swift.md)
 - [Qwen3 tokenizer 模板](https://huggingface.co/Qwen/Qwen3-1.7B/blob/main/tokenizer_config.json)
